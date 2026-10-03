@@ -14,7 +14,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,7 +31,12 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Generate Android project
+      - name: Download bundled Persian PDF font
+        run: |
+          mkdir -p mobile/assets/fonts
+          curl -fL 'https://raw.githubusercontent.com/google/fonts/main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf' -o mobile/assets/fonts/NotoNaskhArabic-Regular.ttf
+
+      - name: Generate Android project and SMS bridge
         working-directory: mobile
         run: |
           cp lib/main.dart /tmp/main.dart
@@ -40,6 +45,19 @@ jobs:
           cp /tmp/main.dart lib/main.dart
           cp /tmp/pubspec.yaml pubspec.yaml
           rm -rf test
+          mkdir -p android/app/src/main/kotlin/com/modiriatservice/modiriat_service
+          cp android_custom/MainActivity.kt android/app/src/main/kotlin/com/modiriatservice/modiriat_service/MainActivity.kt
+          cp android_custom/SmsReceiver.kt android/app/src/main/kotlin/com/modiriatservice/modiriat_service/SmsReceiver.kt
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          if 'android.permission.SEND_SMS' not in s:
+              s = s.replace('<manifest xmlns:android="http://schemas.android.com/apk/res/android">', '<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.SEND_SMS" />')
+          if 'SmsReceiver' not in s:
+              s = s.replace('</application>', '        <receiver android:name=".SmsReceiver" android:exported="false" />\n    </application>')
+          p.write_text(s)
+          PY
 
       - name: Get packages
         working-directory: mobile
@@ -52,7 +70,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: modiriat-service-apk
+          name: modiriat-service-v1.1-apk
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
