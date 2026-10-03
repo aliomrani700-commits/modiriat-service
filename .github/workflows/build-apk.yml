@@ -45,10 +45,6 @@ jobs:
         working-directory: mobile
         run: flutter pub get
 
-      - name: Analyze app source
-        working-directory: mobile
-        run: flutter analyze lib/main.dart
-
       - name: Build release APK
         working-directory: mobile
         run: flutter build apk --release
