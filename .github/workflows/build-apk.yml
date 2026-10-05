@@ -14,7 +14,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,18 +36,21 @@ jobs:
           mkdir -p mobile/assets/fonts
           curl -fL 'https://raw.githubusercontent.com/google/fonts/main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf' -o mobile/assets/fonts/NotoNaskhArabic-Regular.ttf
 
-      - name: Generate Android project and SMS bridge
+      - name: Generate Android project and native bridges
         working-directory: mobile
         run: |
           cp lib/main.dart /tmp/main.dart
+          cp lib/app_v12.dart /tmp/app_v12.dart
           cp pubspec.yaml /tmp/pubspec.yaml
           flutter create --platforms=android --org com.modiriatservice --project-name modiriat_service .
           cp /tmp/main.dart lib/main.dart
+          cp /tmp/app_v12.dart lib/app_v12.dart
           cp /tmp/pubspec.yaml pubspec.yaml
           rm -rf test
           mkdir -p android/app/src/main/kotlin/com/modiriatservice/modiriat_service
           cp android_custom/MainActivity.kt android/app/src/main/kotlin/com/modiriatservice/modiriat_service/MainActivity.kt
           cp android_custom/SmsReceiver.kt android/app/src/main/kotlin/com/modiriatservice/modiriat_service/SmsReceiver.kt
+          base64 -d signing/karnoplus-release.jks.b64 > android/app/karnoplus-release.jks
           python3 - <<'PY'
           from pathlib import Path
           p = Path('android/app/src/main/AndroidManifest.xml')
@@ -56,12 +59,26 @@ jobs:
               s = s.replace('<manifest xmlns:android="http://schemas.android.com/apk/res/android">', '<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.SEND_SMS" />')
           if 'SmsReceiver' not in s:
               s = s.replace('</application>', '        <receiver android:name=".SmsReceiver" android:exported="false" />\n    </application>')
+          s = s.replace('android:label="modiriat_service"', 'android:label="مدیریت سرویس"')
           p.write_text(s)
+
+          g = Path('android/app/build.gradle.kts')
+          t = g.read_text()
+          if 'create("karnoplus")' not in t:
+              marker = '    buildTypes {'
+              signing = '''    signingConfigs {\n        create("karnoplus") {\n            storeFile = file("karnoplus-release.jks")\n            storePassword = "Karnoplus2026"\n            keyAlias = "karnoplus"\n            keyPassword = "Karnoplus2026"\n        }\n    }\n\n'''
+              t = t.replace(marker, signing + marker)
+              t = t.replace('signingConfig = signingConfigs.getByName("debug")', 'signingConfig = signingConfigs.getByName("karnoplus")')
+          g.write_text(t)
           PY
 
       - name: Get packages
         working-directory: mobile
         run: flutter pub get
+
+      - name: Analyze source
+        working-directory: mobile
+        run: flutter analyze lib/main.dart lib/app_v12.dart --no-fatal-infos
 
       - name: Build release APK
         working-directory: mobile
@@ -70,7 +87,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: modiriat-service-v1.1-apk
+          name: modiriat-service-v1.2-apk
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
