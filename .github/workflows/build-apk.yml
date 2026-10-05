@@ -47,64 +47,13 @@ jobs:
           cp /tmp/app_v12.dart lib/app_v12.dart
           cp /tmp/pubspec.yaml pubspec.yaml
           rm -rf test
+          python3 build_patch_v13.py
           mkdir -p android/app/src/main/kotlin/com/modiriatservice/modiriat_service
           cp android_custom/MainActivity.kt android/app/src/main/kotlin/com/modiriatservice/modiriat_service/MainActivity.kt
           cp android_custom/SmsReceiver.kt android/app/src/main/kotlin/com/modiriatservice/modiriat_service/SmsReceiver.kt
           base64 -d signing/karnoplus-release.jks.b64 > android/app/karnoplus-release.jks
           python3 - <<'PY'
           from pathlib import Path
-
-          src = Path('lib/app_v12.dart')
-          x = src.read_text()
-
-          # Repair compact dialog closures and invoice list line from the source snapshot.
-          x = x.replace(']))));', '])));')
-          lines = x.splitlines()
-          for idx, line in enumerate(lines):
-              if "_section('فاکتورهای صادرشده'" in line:
-                  lines[idx] = "    _section('فاکتورهای صادرشده', c.invoices.map((i) => ListTile(title: Text(i.title), subtitle: Text('${i.date} • ${money(i.total)}'), trailing: Wrap(spacing: 0, children: [IconButton(onPressed: () => _pdf(i), icon: const Icon(Icons.picture_as_pdf_outlined)), IconButton(onPressed: () => _invoiceForm(invoice: i), icon: const Icon(Icons.edit_outlined))]))).toList()),"
-          x = '\n'.join(lines) + '\n'
-
-          # Add a live thousands-separator formatter for money entry.
-          anchor = "String newId() => DateTime.now().microsecondsSinceEpoch.toString();\n"
-          formatter = r'''
-
-class ThousandsSeparatorInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.isEmpty) return const TextEditingValue(text: '');
-    final formatted = groupDigits(digits);
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
-    );
-  }
-}
-
-String groupDigits(String value) {
-  final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
-  return digits.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (m) => ',');
-}
-'''
-          if 'class ThousandsSeparatorInputFormatter' not in x:
-              x = x.replace(anchor, anchor + formatter)
-
-          # Make invoice amount field wider and group digits while typing.
-          x = x.replace(
-              "e.value.amount==0?'':e.value.amount.toStringAsFixed(0)",
-              "e.value.amount==0?'':groupDigits(e.value.amount.toStringAsFixed(0))"
-          )
-          x = x.replace(
-              "Expanded(flex:2,child:TextField(controller:dc,decoration:const InputDecoration(labelText:'شرح'),onChanged:(v)=>e.value.description=v))",
-              "Expanded(flex:3,child:TextField(controller:dc,decoration:const InputDecoration(labelText:'شرح'),onChanged:(v)=>e.value.description=v))"
-          )
-          x = x.replace(
-              "Expanded(child:TextField(controller:ac,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'مبلغ'),onChanged:(v)=>e.value.amount=double.tryParse(v.replaceAll(',',''))??0))",
-              "Expanded(flex:3,child:TextField(controller:ac,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],textAlign:TextAlign.center,style:const TextStyle(fontSize:18,fontWeight:FontWeight.w700),decoration:const InputDecoration(labelText:'مبلغ (تومان)',hintText:'مثلاً 1,250,000'),onChanged:(v)=>e.value.amount=double.tryParse(v.replaceAll(',',''))??0))"
-          )
-          src.write_text(x)
-
           p = Path('android/app/src/main/AndroidManifest.xml')
           s = p.read_text()
           if 'android.permission.SEND_SMS' not in s:
