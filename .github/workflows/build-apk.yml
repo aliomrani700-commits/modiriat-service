@@ -48,6 +48,7 @@ jobs:
           cp /tmp/pubspec.yaml pubspec.yaml
           rm -rf test
           python3 build_patch_v13.py
+          python3 build_patch_v14.py
           mkdir -p android/app/src/main/kotlin/com/modiriatservice/modiriat_service
           cp android_custom/MainActivity.kt android/app/src/main/kotlin/com/modiriatservice/modiriat_service/MainActivity.kt
           cp android_custom/SmsReceiver.kt android/app/src/main/kotlin/com/modiriatservice/modiriat_service/SmsReceiver.kt
@@ -88,7 +89,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: modiriat-service-v1.3-apk
+          name: modiriat-service-v1.4-apk
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
