@@ -53,6 +53,17 @@ jobs:
           base64 -d signing/karnoplus-release.jks.b64 > android/app/karnoplus-release.jks
           python3 - <<'PY'
           from pathlib import Path
+
+          # Repair two compact dialog closures and one compact invoice-list line.
+          src = Path('lib/app_v12.dart')
+          x = src.read_text()
+          x = x.replace(']))));', '])));')
+          lines = x.splitlines()
+          for idx, line in enumerate(lines):
+              if "_section('فاکتورهای صادرشده'" in line:
+                  lines[idx] = "    _section('فاکتورهای صادرشده', c.invoices.map((i) => ListTile(title: Text(i.title), subtitle: Text('${i.date} • ${money(i.total)}'), trailing: Wrap(spacing: 0, children: [IconButton(onPressed: () => _pdf(i), icon: const Icon(Icons.picture_as_pdf_outlined)), IconButton(onPressed: () => _invoiceForm(invoice: i), icon: const Icon(Icons.edit_outlined))]))).toList()),"
+          src.write_text('\n'.join(lines) + '\n')
+
           p = Path('android/app/src/main/AndroidManifest.xml')
           s = p.read_text()
           if 'android.permission.SEND_SMS' not in s:
