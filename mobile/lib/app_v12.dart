@@ -87,13 +87,13 @@ class SmsTemplate {
 }
 
 class ServiceRecord {
-  ServiceRecord({required this.id, required this.date, required this.description, required this.amount, this.nextDate = ''});
-  String id, date, description, nextDate;
+  ServiceRecord({required this.id, required this.date, required this.description, required this.amount, this.nextDate = '', this.deviceId = ''});
+  String id, date, description, nextDate, deviceId;
   double amount;
-  Map<String, dynamic> toJson() => {'id': id, 'date': date, 'description': description, 'amount': amount, 'nextDate': nextDate};
+  Map<String, dynamic> toJson() => {'id': id, 'date': date, 'description': description, 'amount': amount, 'nextDate': nextDate, 'deviceId': deviceId};
   factory ServiceRecord.fromJson(Map<String, dynamic> j) => ServiceRecord(
         id: j['id']?.toString() ?? DateTime.now().microsecondsSinceEpoch.toString(),
-        date: j['date']?.toString() ?? '', description: j['description']?.toString() ?? '', amount: (j['amount'] as num?)?.toDouble() ?? 0, nextDate: j['nextDate']?.toString() ?? '');
+        date: j['date']?.toString() ?? '', description: j['description']?.toString() ?? '', amount: (j['amount'] as num?)?.toDouble() ?? 0, nextDate: j['nextDate']?.toString() ?? '', deviceId: j['deviceId']?.toString() ?? '');
 }
 
 class PaymentRecord {
@@ -132,10 +132,29 @@ class InvoiceRecord {
         items: ((j['items'] as List?) ?? []).map((e) => InvoiceItem.fromJson(Map<String, dynamic>.from(e))).toList());
 }
 
+
+class DeviceRecord {
+  DeviceRecord({required this.id, required this.name, this.notes='', this.nextServiceDate='', this.smsTemplateId='', this.customSms=''});
+  String id,name,notes,nextServiceDate,smsTemplateId,customSms;
+  Map<String,dynamic> toJson()=>{'id':id,'name':name,'notes':notes,'nextServiceDate':nextServiceDate,'smsTemplateId':smsTemplateId,'customSms':customSms};
+  factory DeviceRecord.fromJson(Map<String,dynamic> j)=>DeviceRecord(
+    id:j['id']?.toString()??newId(),name:j['name']?.toString()??'',notes:j['notes']?.toString()??'',
+    nextServiceDate:j['nextServiceDate']?.toString()??'',smsTemplateId:j['smsTemplateId']?.toString()??'',customSms:j['customSms']?.toString()??'');
+}
+List<DeviceRecord> _devicesFromJson(Map<String,dynamic> j){
+  final raw=j['devices'];
+  if(raw is List && raw.isNotEmpty)return raw.map((e)=>DeviceRecord.fromJson(Map<String,dynamic>.from(e))).toList();
+  final name=(j['deviceType']??j['vehicle'])?.toString()??'';
+  final next=j['nextServiceDate']?.toString()??'';
+  if(name.isEmpty && next.isEmpty)return <DeviceRecord>[];
+  return [DeviceRecord(id:'legacy-'+(j['id']?.toString()??newId()),name:name.isEmpty?'دستگاه اول':name,nextServiceDate:next,smsTemplateId:j['smsTemplateId']?.toString()??'',customSms:j['customSms']?.toString()??'')];
+}
+
 class Customer {
-  Customer({required this.id, required this.name, this.phone = '', this.address = '', this.deviceType = '', this.notes = '', this.nextServiceDate = '', this.smsTemplateId = '', this.customSms = '', List<ServiceRecord>? services, List<PaymentRecord>? payments, List<InvoiceRecord>? invoices})
-      : services = services ?? [], payments = payments ?? [], invoices = invoices ?? [];
+  Customer({required this.id, required this.name, this.phone = '', this.address = '', this.deviceType = '', this.notes = '', this.nextServiceDate = '', this.smsTemplateId = '', this.customSms = '', List<DeviceRecord>? devices, List<ServiceRecord>? services, List<PaymentRecord>? payments, List<InvoiceRecord>? invoices})
+      : devices = devices ?? [], services = services ?? [], payments = payments ?? [], invoices = invoices ?? [];
   String id, name, phone, address, deviceType, notes, nextServiceDate, smsTemplateId, customSms;
+  List<DeviceRecord> devices;
   List<ServiceRecord> services;
   List<PaymentRecord> payments;
   List<InvoiceRecord> invoices;
@@ -144,13 +163,13 @@ class Customer {
   double get balance => totalServices - totalPayments;
   Map<String, dynamic> toJson() => {
         'id': id, 'name': name, 'phone': phone, 'address': address, 'deviceType': deviceType, 'vehicle': deviceType, 'notes': notes,
-        'nextServiceDate': nextServiceDate, 'smsTemplateId': smsTemplateId, 'customSms': customSms,
+        'nextServiceDate': nextServiceDate, 'smsTemplateId': smsTemplateId, 'customSms': customSms, 'devices':devices.map((e)=>e.toJson()).toList(),
         'services': services.map((e) => e.toJson()).toList(), 'payments': payments.map((e) => e.toJson()).toList(), 'invoices': invoices.map((e) => e.toJson()).toList(),
       };
   factory Customer.fromJson(Map<String, dynamic> j) => Customer(
         id: j['id']?.toString() ?? '', name: j['name']?.toString() ?? '', phone: j['phone']?.toString() ?? '', address: j['address']?.toString() ?? '',
         deviceType: (j['deviceType'] ?? j['vehicle'])?.toString() ?? '', notes: j['notes']?.toString() ?? '', nextServiceDate: j['nextServiceDate']?.toString() ?? '',
-        smsTemplateId: j['smsTemplateId']?.toString() ?? '', customSms: j['customSms']?.toString() ?? '',
+        smsTemplateId: j['smsTemplateId']?.toString() ?? '', customSms: j['customSms']?.toString() ?? '', devices:_devicesFromJson(j),
         services: ((j['services'] as List?) ?? []).map((e) => ServiceRecord.fromJson(Map<String, dynamic>.from(e))).toList(),
         payments: ((j['payments'] as List?) ?? []).map((e) => PaymentRecord.fromJson(Map<String, dynamic>.from(e))).toList(),
         invoices: ((j['invoices'] as List?) ?? []).map((e) => InvoiceRecord.fromJson(Map<String, dynamic>.from(e))).toList());
@@ -166,6 +185,11 @@ String renderSms(String body, Customer c) => body.replaceAll('{نام}', c.name)
 String today() { final j = Jalali.now(); return '${j.year}/${j.month.toString().padLeft(2, '0')}/${j.day.toString().padLeft(2, '0')}'; }
 String money(double v) => '${v.round().toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (m) => ',')} تومان';
 String newId() => DateTime.now().microsecondsSinceEpoch.toString();
+
+String renderDeviceSms(String body,Customer c,DeviceRecord d)=>body.replaceAll('{نام}',c.name).replaceAll('{دستگاه}',d.name).replaceAll('{تاریخ}',d.nextServiceDate);
+int alarmIdFor(Customer c,DeviceRecord d)=>(c.id+':'+d.id).hashCode & 0x7fffffff;
+String nearestService(Customer c){final a=c.devices.map((d)=>d.nextServiceDate).where((e)=>e.isNotEmpty).toList()..sort();return a.isEmpty?'':a.first;}
+
 
 DateTime? parseServiceDate(String s, AppSettings settings) {
   try {
@@ -193,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try { final r = p.getString(_templatesKey); if (r != null) templates.addAll((jsonDecode(r) as List).map((e) => SmsTemplate.fromJson(Map<String,dynamic>.from(e)))); } catch (_) {}
     try { final r = p.getString(_settingsKey); if (r != null) settings = AppSettings.fromJson(Map<String,dynamic>.from(jsonDecode(r))); } catch (_) {}
     if (templates.isEmpty) templates.addAll(defaultSmsTemplates());
-    for (final c in customers) { if (c.smsTemplateId.isEmpty) c.smsTemplateId = templates.first.id; }
+    for (final c in customers) { if(c.smsTemplateId.isEmpty)c.smsTemplateId=templates.first.id; for(final d in c.devices){if(d.smsTemplateId.isEmpty)d.smsTemplateId=templates.first.id;} }
     await _saveCore(dailyBackup: true);
     await _scheduleAll();
     if (mounted) setState(() => loading = false);
@@ -218,16 +242,35 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) setState(() {});
   }
 
-  SmsTemplate templateFor(Customer c) => templates.firstWhere((e)=>e.id==c.smsTemplateId, orElse: ()=>templates.first);
-  String smsFor(Customer c) => renderSms(c.customSms.trim().isNotEmpty ? c.customSms : templateFor(c).body, c);
+  SmsTemplate templateFor(Customer c)=>templates.firstWhere((e)=>e.id==c.smsTemplateId,orElse:()=>templates.first);
+  SmsTemplate templateForDevice(DeviceRecord d)=>templates.firstWhere((e)=>e.id==d.smsTemplateId,orElse:()=>templates.first);
+  String smsFor(Customer c)=>renderSms(c.customSms.trim().isNotEmpty?c.customSms:templateFor(c).body,c);
+  String smsForDevice(Customer c,DeviceRecord d)=>renderDeviceSms(d.customSms.trim().isNotEmpty?d.customSms:templateForDevice(d).body,c,d);
 
-  Future<void> _schedule(Customer c) async {
-    if (c.phone.trim().isEmpty || c.nextServiceDate.trim().isEmpty) return;
-    final when = parseServiceDate(c.nextServiceDate, settings); if (when == null || when.isBefore(DateTime.now())) return;
-    if (!(await Permission.sms.status).isGranted) return;
-    try { await _channel.invokeMethod('scheduleSms', {'id': c.id.hashCode & 0x7fffffff, 'phone': c.phone.trim(), 'message': smsFor(c), 'timeMillis': when.millisecondsSinceEpoch}); } catch (_) {}
+  Future<void> _scheduleDevice(Customer c,DeviceRecord d) async {
+    if(!settings.smsEnabled||c.phone.trim().isEmpty||d.nextServiceDate.trim().isEmpty)return;
+    final when=parseServiceDate(d.nextServiceDate,settings);
+    if(when==null||when.isBefore(DateTime.now())||!(await Permission.sms.status).isGranted)return;
+    try{await _channel.invokeMethod('scheduleSms',{'id':alarmIdFor(c,d),'phone':c.phone.trim(),'message':smsForDevice(c,d),'timeMillis':when.millisecondsSinceEpoch});}catch(_){}
   }
-  Future<void> _scheduleAll() async { for (final c in customers) { await _schedule(c); } }
+  Future<void> _schedule(Customer c) async {
+    try{await _channel.invokeMethod('cancelSms',{'id':c.id.hashCode & 0x7fffffff});}catch(_){}
+    for(final d in c.devices){await _scheduleDevice(c,d);}
+  }
+  Future<void> _scheduleAll() async {for(final c in customers){await _schedule(c);}}
+  Future<void> _cancelAllSms() async {for(final c in customers){try{await _channel.invokeMethod('cancelSms',{'id':c.id.hashCode & 0x7fffffff});}catch(_){} for(final d in c.devices){try{await _channel.invokeMethod('cancelSms',{'id':alarmIdFor(c,d)});}catch(_){}}}}
+  Future<void> _setSmsEnabled(bool enabled) async {
+    if(enabled==settings.smsEnabled)return;
+    if(!enabled){settings.smsEnabled=false;settings.smsPausedAt=DateTime.now().toIso8601String();await _cancelAllSms();await _saveCore(dailyBackup:false);return;}
+    final pausedAt=DateTime.tryParse(settings.smsPausedAt);settings.smsEnabled=true;settings.smsPausedAt='';await _saveCore(dailyBackup:false);
+    if(!(await Permission.sms.status).isGranted)return;
+    final now=DateTime.now();
+    for(final c in customers){if(c.phone.trim().isEmpty)continue;for(final d in c.devices){
+      final when=parseServiceDate(d.nextServiceDate,settings);if(when==null)continue;
+      if(pausedAt!=null&&!when.isBefore(pausedAt)&&!when.isAfter(now)){try{await _channel.invokeMethod('sendSmsNow',{'phone':c.phone.trim(),'message':smsForDevice(c,d)});}catch(_){}}
+      else if(when.isAfter(now)){await _scheduleDevice(c,d);}
+    }}
+  }
 
   List<Customer> get filtered {
     final q=search.text.trim().toLowerCase(); if(q.isEmpty)return customers;
@@ -235,17 +278,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _customerForm({Customer? customer}) async {
-    final name=TextEditingController(text:customer?.name??''), phone=TextEditingController(text:customer?.phone??''), address=TextEditingController(text:customer?.address??''), device=TextEditingController(text:customer?.deviceType??''), next=TextEditingController(text:customer?.nextServiceDate??''), notes=TextEditingController(text:customer?.notes??'');
-    var tpl=customer?.smsTemplateId.isNotEmpty==true?customer!.smsTemplateId:templates.first.id;
-    final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(title:Text(customer==null?'مشتری جدید':'ویرایش مشتری'),content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
-      _field(name,'نام مشتری'),const SizedBox(height:8),_field(phone,'شماره تماس',type:TextInputType.phone),const SizedBox(height:8),_field(address,'آدرس',lines:2),const SizedBox(height:8),_field(device,'نوع دستگاه'),const SizedBox(height:8),_field(next,'تاریخ سرویس بعدی',hint:'مثلاً 1405/08/20'),const SizedBox(height:8),
-      DropdownButtonFormField<String>(value:tpl,decoration:const InputDecoration(labelText:'قالب پیامک'),items:templates.map((e)=>DropdownMenuItem(value:e.id,child:Text(e.title))).toList(),onChanged:(v){if(v!=null)setD(()=>tpl=v);}),const SizedBox(height:8),_field(notes,'توضیحات',lines:2)
-    ])),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]))));
-    if(ok!=true||name.text.trim().isEmpty)return;
-    final c=customer??Customer(id:newId(),name:name.text.trim());
-    c..name=name.text.trim()..phone=phone.text.trim()..address=address.text.trim()..deviceType=device.text.trim()..nextServiceDate=next.text.trim()..notes=notes.text.trim()..smsTemplateId=tpl;
-    if(customer==null)customers.insert(0,c);
-    await _saveCore(); await _schedule(c);
+    final name=TextEditingController(text:customer?.name??''),phone=TextEditingController(text:customer?.phone??''),address=TextEditingController(text:customer?.address??''),notes=TextEditingController(text:customer?.notes??'');
+    final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:Text(customer==null?'مشتری جدید':'ویرایش مشتری'),content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
+      _field(name,'نام مشتری'),const SizedBox(height:8),_field(phone,'شماره تماس',type:TextInputType.phone),const SizedBox(height:8),_field(address,'آدرس',lines:2),const SizedBox(height:8),_field(notes,'توضیحات',lines:2)
+    ])),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]));
+    if(ok!=true||name.text.trim().isEmpty)return;final c=customer??Customer(id:newId(),name:name.text.trim());
+    c..name=name.text.trim()..phone=phone.text.trim()..address=address.text.trim()..notes=notes.text.trim();if(customer==null)customers.insert(0,c);await _saveCore();await _schedule(c);
   }
 
   Future<void> _backupDialog() async {
@@ -264,7 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
     body:loading?const Center(child:CircularProgressIndicator()):Column(children:[
       Container(margin:const EdgeInsets.fromLTRB(16,8,16,12),padding:const EdgeInsets.all(16),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF0F766E),Color(0xFF115E59)]),borderRadius:BorderRadius.circular(22)),child:Row(children:[Expanded(child:_stat('مشتری',customers.length.toString())),Expanded(child:_stat('طلب کل',money(customers.fold(0.0,(s,c)=>s+(c.balance>0?c.balance:0)))))])),
       Padding(padding:const EdgeInsets.symmetric(horizontal:16),child:TextField(controller:search,onChanged:(_)=>setState((){}),decoration:const InputDecoration(prefixIcon:Icon(Icons.search),hintText:'جستجو نام، شماره، دستگاه یا آدرس...'))),const SizedBox(height:10),
-      Expanded(child:filtered.isEmpty?const Center(child:Text('هنوز مشتری ثبت نشده')):ListView.separated(padding:const EdgeInsets.fromLTRB(16,0,16,100),itemCount:filtered.length,separatorBuilder:(_,__)=>const SizedBox(height:10),itemBuilder:(ctx,i){final c=filtered[i];return Card(child:ListTile(contentPadding:const EdgeInsets.all(14),leading:CircleAvatar(child:Text(c.name.isEmpty?'?':c.name.substring(0,1))),title:Text(c.name,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text([if(c.deviceType.isNotEmpty)c.deviceType,if(c.phone.isNotEmpty)c.phone,if(c.nextServiceDate.isNotEmpty)'سرویس بعدی: ${c.nextServiceDate}', 'مانده: ${money(c.balance)}'].join('\n')),trailing:const Icon(Icons.chevron_left),onTap:()async{await Navigator.push(context,MaterialPageRoute(builder:(_)=>CustomerScreen(customer:c,templates:templates,settings:settings,onSave:_saveCore,onSchedule:_schedule,onEditCustomer:()=>_customerForm(customer:c))));if(mounted)setState((){});}));}))
+      Expanded(child:filtered.isEmpty?const Center(child:Text('هنوز مشتری ثبت نشده')):ListView.separated(padding:const EdgeInsets.fromLTRB(16,0,16,100),itemCount:filtered.length,separatorBuilder:(_,__)=>const SizedBox(height:10),itemBuilder:(ctx,i){final c=filtered[i];return Card(child:ListTile(contentPadding:const EdgeInsets.all(14),leading:CircleAvatar(child:Text(c.name.isEmpty?'?':c.name.substring(0,1))),title:Text(c.name,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text([if(c.phone.isNotEmpty)c.phone,'تعداد دستگاه: \${c.devices.length}',if(nearestService(c).isNotEmpty)'نزدیک‌ترین سرویس: \${nearestService(c)}','مانده: \${money(c.balance)}'].join('\n')),trailing:const Icon(Icons.chevron_left),onTap:()async{await Navigator.push(context,MaterialPageRoute(builder:(_)=>CustomerScreen(customer:c,templates:templates,settings:settings,onSave:_saveCore,onSchedule:_schedule,onEditCustomer:()=>_customerForm(customer:c))));if(mounted)setState((){});}));}))
     ]));
 
   Widget _stat(String a,String b)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(a,style:const TextStyle(color:Colors.white70)),const SizedBox(height:4),Text(b,style:const TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:18))]);
@@ -279,6 +317,53 @@ class _CustomerScreenState extends State<CustomerScreen>{
   Customer get c=>widget.customer;
   Future<void> _save()async{await widget.onSave();if(mounted)setState((){});}
 
+  DeviceRecord? _deviceById(String id){for(final d in c.devices){if(d.id==id)return d;}return null;}
+
+  Future<void> _deviceForm({DeviceRecord? device}) async {
+    final name=TextEditingController(text:device?.name??''),next=TextEditingController(text:device?.nextServiceDate??''),notes=TextEditingController(text:device?.notes??'');
+    var tpl=device?.smsTemplateId.isNotEmpty==true?device!.smsTemplateId:widget.templates.first.id;
+    final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(title:Text(device==null?'افزودن دستگاه':'ویرایش دستگاه'),content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
+      _field(name,'نام / نوع دستگاه'),const SizedBox(height:8),_field(next,'تاریخ سرویس بعدی',hint:'مثلاً 1405/09/10'),const SizedBox(height:8),
+      DropdownButtonFormField<String>(value:tpl,decoration:const InputDecoration(labelText:'قالب پیامک'),items:widget.templates.map((e)=>DropdownMenuItem(value:e.id,child:Text(e.title))).toList(),onChanged:(v){if(v!=null)setD(()=>tpl=v);}),const SizedBox(height:8),_field(notes,'توضیحات دستگاه',lines:2)
+    ])),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))])));
+    if(ok!=true||name.text.trim().isEmpty)return;final dev=device??DeviceRecord(id:newId(),name:name.text.trim());
+    dev..name=name.text.trim()..nextServiceDate=next.text.trim()..notes=notes.text.trim()..smsTemplateId=tpl;if(device==null)c.devices.add(dev);await _save();await widget.onSchedule(c);
+  }
+
+  Future<void> _deviceSmsEditor(DeviceRecord d) async {
+    final tpl=widget.templates.firstWhere((e)=>e.id==d.smsTemplateId,orElse:()=>widget.templates.first);
+    final ctrl=TextEditingController(text:d.customSms.isNotEmpty?d.customSms:tpl.body);
+    final ok=await showDialog<bool>(context:context,builder:(ctx)=>StatefulBuilder(builder:(ctx,setD)=>AlertDialog(title:Text('پیامک \${d.name}'),content:Column(mainAxisSize:MainAxisSize.min,children:[
+      Text('پیش‌نمایش: \${renderDeviceSms(ctrl.text,c,d)}'),const SizedBox(height:10),TextField(controller:ctrl,maxLines:6,onChanged:(_)=>setD((){}),decoration:const InputDecoration(labelText:'متن پیامک',helperText:'متغیرها: {نام} {دستگاه} {تاریخ}'))
+    ]),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('ذخیره و زمان‌بندی'))])));
+    if(ok==true){d.customSms=ctrl.text.trim();await _save();await widget.onSchedule(c);}
+  }
+
+  bool _inRange(String date,String from,String to){final v=date.replaceAll('-','/'),a=from.replaceAll('-','/'),b=to.replaceAll('-','/');return v.isNotEmpty&&v.compareTo(a)>=0&&v.compareTo(b)<=0;}
+
+  Future<void> _reportDialog() async {
+    final from=TextEditingController(text:'\${Jalali.now().year}/01/01'),to=TextEditingController(text:today());String deviceId='';
+    final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(title:const Text('گزارش عملکرد'),content:Column(mainAxisSize:MainAxisSize.min,children:[
+      _field(from,'از تاریخ'),const SizedBox(height:8),_field(to,'تا تاریخ'),const SizedBox(height:8),
+      DropdownButtonFormField<String>(value:deviceId,decoration:const InputDecoration(labelText:'دستگاه'),items:[const DropdownMenuItem(value:'',child:Text('همه دستگاه‌ها')),...c.devices.map((e)=>DropdownMenuItem(value:e.id,child:Text(e.name)))],onChanged:(v)=>setD(()=>deviceId=v??''))
+    ]),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton.icon(onPressed:()=>Navigator.pop(d,true),icon:const Icon(Icons.picture_as_pdf),label:const Text('ساخت PDF'))])));
+    if(ok==true)await _reportPdf(from.text.trim(),to.text.trim(),deviceId);
+  }
+
+  Future<void> _reportPdf(String from,String to,String deviceId) async {
+    final services=c.services.where((s)=>_inRange(s.date,from,to)&&(deviceId.isEmpty||s.deviceId==deviceId||(s.deviceId.isEmpty&&c.devices.isNotEmpty&&c.devices.first.id==deviceId))).toList();
+    final payments=c.payments.where((p)=>_inRange(p.date,from,to)).toList();
+    final ts=services.fold<double>(0,(a,e)=>a+e.amount),tp=payments.fold<double>(0,(a,e)=>a+e.amount),sel=deviceId.isEmpty?null:_deviceById(deviceId);
+    final font=await rootBundle.load('assets/fonts/NotoNaskhArabic-Regular.ttf'),f=pw.Font.ttf(font);final doc=pw.Document();
+    doc.addPage(pw.MultiPage(pageFormat:PdfPageFormat.a4,theme:pw.ThemeData.withFont(base:f,bold:f),textDirection:pw.TextDirection.rtl,build:(ctx)=>[
+      pw.Text(widget.settings.sellerName.isEmpty?'کارنوپلاس':widget.settings.sellerName,style:pw.TextStyle(fontSize:22,fontWeight:pw.FontWeight.bold)),pw.Text('گزارش عملکرد مشتری',style:pw.TextStyle(fontSize:17,fontWeight:pw.FontWeight.bold)),pw.SizedBox(height:10),
+      pw.Text('مشتری: \${c.name}'),pw.Text('بازه: $from تا $to'),if(sel!=null)pw.Text('دستگاه: \${sel.name}'),pw.SizedBox(height:12),
+      pw.Text('خدمات انجام‌شده',style:pw.TextStyle(fontWeight:pw.FontWeight.bold)),...services.map((s){final dn=_deviceById(s.deviceId)?.name??(c.devices.isNotEmpty?c.devices.first.name:'');return pw.Text('\${s.date} | $dn | \${s.description} | \${money(s.amount)}');}),pw.SizedBox(height:12),
+      pw.Text('پرداخت‌ها',style:pw.TextStyle(fontWeight:pw.FontWeight.bold)),...payments.map((p)=>pw.Text('\${p.date} | \${p.note} | \${money(p.amount)}')),pw.SizedBox(height:14),
+      pw.Text('جمع خدمات: \${money(ts)}'),pw.Text('جمع پرداختی: \${money(tp)}'),pw.Text('مانده این بازه: \${money(ts-tp)}',style:pw.TextStyle(fontWeight:pw.FontWeight.bold))
+    ]));final bytes=await doc.save();await Printing.sharePdf(bytes:bytes,filename:'performance-report.pdf');
+  }
+
   Future<void> _smsEditor() async {
     final tpl=widget.templates.firstWhere((e)=>e.id==c.smsTemplateId,orElse:()=>widget.templates.first);
     final ctrl=TextEditingController(text:c.customSms.isNotEmpty?c.customSms:tpl.body);
@@ -287,9 +372,16 @@ class _CustomerScreenState extends State<CustomerScreen>{
   }
 
   Future<void> _serviceForm({ServiceRecord? record}) async {
-    final desc=TextEditingController(text:record?.description??''), amount=TextEditingController(text:record==null?'':record.amount.toStringAsFixed(0)), date=TextEditingController(text:record?.date??today()), next=TextEditingController(text:record?.nextDate??c.nextServiceDate);
-    final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:Text(record==null?'ثبت سرویس':'ویرایش سرویس'),content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[_field(desc,'شرح سرویس'),const SizedBox(height:8),_field(amount,'مبلغ (تومان)',type:TextInputType.number),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(next,'سرویس بعدی')])),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]));
-    if(ok!=true||desc.text.trim().isEmpty)return;final r=record??ServiceRecord(id:newId(),date:'',description:'',amount:0);r..description=desc.text.trim()..amount=double.tryParse(amount.text.replaceAll(',',''))??0..date=date.text.trim()..nextDate=next.text.trim();if(record==null)c.services.insert(0,r);if(next.text.trim().isNotEmpty)c.nextServiceDate=next.text.trim();await _save();await widget.onSchedule(c);
+    if(c.devices.isEmpty){if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('اول یک دستگاه ثبت کنید')));return;}
+    final desc=TextEditingController(text:record?.description??''),amount=TextEditingController(text:record==null?'':record.amount.toStringAsFixed(0)),date=TextEditingController(text:record?.date??today()),next=TextEditingController(text:record?.nextDate??'');
+    var deviceId=(record?.deviceId.isNotEmpty==true)?record!.deviceId:c.devices.first.id;if(!c.devices.any((d)=>d.id==deviceId))deviceId=c.devices.first.id;if(record==null)next.text=_deviceById(deviceId)?.nextServiceDate??'';
+    final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(title:Text(record==null?'ثبت سرویس':'ویرایش سرویس'),content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
+      DropdownButtonFormField<String>(value:deviceId,decoration:const InputDecoration(labelText:'دستگاه'),items:c.devices.map((e)=>DropdownMenuItem(value:e.id,child:Text(e.name))).toList(),onChanged:(v){if(v!=null)setD((){deviceId=v;if(record==null)next.text=_deviceById(v)?.nextServiceDate??'';});}),const SizedBox(height:8),
+      _field(desc,'شرح سرویس'),const SizedBox(height:8),_field(amount,'مبلغ (تومان)',type:TextInputType.number),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(next,'سرویس بعدی')
+    ])),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))])));
+    if(ok!=true||desc.text.trim().isEmpty)return;final r=record??ServiceRecord(id:newId(),date:'',description:'',amount:0);
+    r..description=desc.text.trim()..amount=double.tryParse(amount.text.replaceAll(',',''))??0..date=date.text.trim()..nextDate=next.text.trim()..deviceId=deviceId;if(record==null)c.services.insert(0,r);
+    final dev=_deviceById(deviceId);if(dev!=null&&next.text.trim().isNotEmpty)dev.nextServiceDate=next.text.trim();await _save();await widget.onSchedule(c);
   }
 
   Future<void> _paymentForm({PaymentRecord? record}) async {
@@ -316,13 +408,14 @@ class _CustomerScreenState extends State<CustomerScreen>{
   }
 
   @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text(c.name),actions:[IconButton(onPressed:()async{await widget.onEditCustomer();if(mounted)setState((){});},icon:const Icon(Icons.edit_outlined))]),body:ListView(padding:const EdgeInsets.all(16),children:[
-    _infoCard(),const SizedBox(height:12),Row(children:[Expanded(child:FilledButton.icon(onPressed:()=>_serviceForm(),icon:const Icon(Icons.build_outlined),label:const Text('ثبت سرویس'))),const SizedBox(width:8),Expanded(child:FilledButton.tonalIcon(onPressed:()=>_paymentForm(),icon:const Icon(Icons.payments_outlined),label:const Text('ثبت پرداخت')))]),const SizedBox(height:8),Row(children:[Expanded(child:FilledButton.tonalIcon(onPressed:()=>_invoiceForm(),icon:const Icon(Icons.receipt_long_outlined),label:const Text('فاکتور جدید'))),const SizedBox(width:8),Expanded(child:OutlinedButton.icon(onPressed:_smsEditor,icon:const Icon(Icons.sms_outlined),label:const Text('متن پیامک')))]),const SizedBox(height:20),
+    _infoCard(),const SizedBox(height:12),Row(children:[Expanded(child:FilledButton.icon(onPressed:()=>_serviceForm(),icon:const Icon(Icons.build_outlined),label:const Text('ثبت سرویس'))),const SizedBox(width:8),Expanded(child:FilledButton.tonalIcon(onPressed:()=>_paymentForm(),icon:const Icon(Icons.payments_outlined),label:const Text('ثبت پرداخت')))]),const SizedBox(height:8),Row(children:[Expanded(child:FilledButton.tonalIcon(onPressed:()=>_invoiceForm(),icon:const Icon(Icons.receipt_long_outlined),label:const Text('فاکتور جدید'))),const SizedBox(width:8),Expanded(child:OutlinedButton.icon(onPressed:_reportDialog,icon:const Icon(Icons.analytics_outlined),label:const Text('گزارش عملکرد')))]),const SizedBox(height:8),OutlinedButton.icon(onPressed:()=>_deviceForm(),icon:const Icon(Icons.add_circle_outline),label:const Text('افزودن دستگاه')),const SizedBox(height:20),
+    _section('دستگاه‌های مشتری',c.devices.map((d)=>ListTile(title:Text(d.name),subtitle:Text(d.nextServiceDate.isEmpty?d.notes:'سرویس بعدی: \${d.nextServiceDate}\n\${d.notes}'),trailing:Wrap(spacing:0,children:[IconButton(onPressed:()=>_deviceSmsEditor(d),icon:const Icon(Icons.sms_outlined)),IconButton(onPressed:()=>_deviceForm(device:d),icon:const Icon(Icons.edit_outlined))]))).toList()),
     _section('فاکتورهای صادرشده',c.invoices.map((i)=>ListTile(title:Text(i.title),subtitle:Text('${i.date} • ${money(i.total)}'),trailing:Wrap(spacing:0,children:[IconButton(onPressed:()=>_pdf(i),icon:const Icon(Icons.picture_as_pdf_outlined)),IconButton(onPressed:()=>_invoiceForm(invoice:i),icon:const Icon(Icons.edit_outlined))])).toList()),
-    _section('سابقه خدمات',c.services.map((r)=>ListTile(title:Text(r.description),subtitle:Text('${r.date} • ${money(r.amount)}${r.nextDate.isEmpty?'':'\nسرویس بعدی: ${r.nextDate}'}'),trailing:IconButton(onPressed:()=>_serviceForm(record:r),icon:const Icon(Icons.edit_outlined)))).toList()),
+    _section('سابقه خدمات',c.services.map((r)=>ListTile(title:Text(r.description),subtitle:Text('\${_deviceById(r.deviceId)?.name ?? (c.devices.isNotEmpty?c.devices.first.name:'')} • \${r.date} • \${money(r.amount)}\${r.nextDate.isEmpty?'':'\nسرویس بعدی: \${r.nextDate}'}'),trailing:IconButton(onPressed:()=>_serviceForm(record:r),icon:const Icon(Icons.edit_outlined)))).toList()),
     _section('پرداخت‌ها',c.payments.map((r)=>ListTile(title:Text(money(r.amount)),subtitle:Text('${r.date}${r.note.isEmpty?'':' • ${r.note}'}'),trailing:IconButton(onPressed:()=>_paymentForm(record:r),icon:const Icon(Icons.edit_outlined)))).toList()),
   ]));
 
-  Widget _infoCard()=>Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20)),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Text(c.name,style:const TextStyle(fontSize:22,fontWeight:FontWeight.w800)),const SizedBox(height:8),if(c.phone.isNotEmpty)Text('تلفن: ${c.phone}'),if(c.address.isNotEmpty)Text('آدرس: ${c.address}'),if(c.deviceType.isNotEmpty)Text('نوع دستگاه: ${c.deviceType}'),if(c.nextServiceDate.isNotEmpty)Text('سرویس بعدی: ${c.nextServiceDate} ساعت ${widget.settings.smsHour.toString().padLeft(2,'0')}:${widget.settings.smsMinute.toString().padLeft(2,'0')}'),const Divider(height:24),Text('مانده حساب: ${money(c.balance)}',style:TextStyle(fontWeight:FontWeight.bold,color:c.balance>0?Colors.red.shade700:Colors.green.shade700))]));
+  Widget _infoCard()=>Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20)),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Text(c.name,style:const TextStyle(fontSize:22,fontWeight:FontWeight.w800)),const SizedBox(height:8),if(c.phone.isNotEmpty)Text('تلفن: ${c.phone}'),if(c.address.isNotEmpty)Text('آدرس: ${c.address}'),Text('تعداد دستگاه‌ها: \${c.devices.length}'),const Divider(height:24),Text('مانده حساب: ${money(c.balance)}',style:TextStyle(fontWeight:FontWeight.bold,color:c.balance>0?Colors.red.shade700:Colors.green.shade700))]));
   Widget _section(String title,List<Widget> rows)=>Padding(padding:const EdgeInsets.only(bottom:16),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Text(title,style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800)),const SizedBox(height:8),Container(decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(16)),child:rows.isEmpty?const Padding(padding:EdgeInsets.all(16),child:Text('موردی ثبت نشده')):Column(children:rows))]));
 }
 
