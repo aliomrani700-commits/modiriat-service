@@ -364,13 +364,6 @@ class _CustomerScreenState extends State<CustomerScreen>{
     ]));final bytes=await doc.save();await Printing.sharePdf(bytes:bytes,filename:'performance-report.pdf');
   }
 
-  Future<void> _smsEditor() async {
-    final tpl=widget.templates.firstWhere((e)=>e.id==c.smsTemplateId,orElse:()=>widget.templates.first);
-    final ctrl=TextEditingController(text:c.customSms.isNotEmpty?c.customSms:tpl.body);
-    final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:const Text('متن پیامک یادآوری'),content:Column(mainAxisSize:MainAxisSize.min,children:[Text('پیش‌نمایش: ${renderSms(ctrl.text,c)}'),const SizedBox(height:10),TextField(controller:ctrl,maxLines:6,decoration:const InputDecoration(labelText:'متن پیامک',helperText:'متغیرها: {نام}  {دستگاه}  {تاریخ}'))]),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره و زمان‌بندی'))]));
-    if(ok==true){c.customSms=ctrl.text.trim();await _save();await widget.onSchedule(c);}
-  }
-
   Future<void> _serviceForm({ServiceRecord? record}) async {
     if(c.devices.isEmpty){if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('اول یک دستگاه ثبت کنید')));return;}
     final desc=TextEditingController(text:record?.description??''),amount=TextEditingController(text:record==null?'':record.amount.toStringAsFixed(0)),date=TextEditingController(text:record?.date??today()),next=TextEditingController(text:record?.nextDate??'');
