@@ -388,13 +388,33 @@ class _CustomerScreenState extends State<CustomerScreen>{
     final payments=c.payments.where((p)=>_inRange(p.date,from,to)).toList();
     final ts=services.fold<double>(0,(a,e)=>a+e.amount),tp=payments.fold<double>(0,(a,e)=>a+e.amount),sel=deviceId.isEmpty?null:_deviceById(deviceId);
     final font=await rootBundle.load('assets/fonts/NotoNaskhArabic-Regular.ttf'),f=pw.Font.ttf(font);final doc=pw.Document();
-    doc.addPage(pw.MultiPage(pageFormat:PdfPageFormat.a4,theme:pw.ThemeData.withFont(base:f,bold:f),textDirection:pw.TextDirection.rtl,build:(ctx)=>[
-      pw.Text(widget.settings.sellerName.isEmpty?'کارنوپلاس':widget.settings.sellerName,style:pw.TextStyle(fontSize:22,fontWeight:pw.FontWeight.bold)),pw.Text('گزارش عملکرد مشتری',style:pw.TextStyle(fontSize:17,fontWeight:pw.FontWeight.bold)),pw.SizedBox(height:10),
-      pw.Text('مشتری: ${c.name}'),pw.Text('بازه: $from تا $to'),if(sel!=null)pw.Text('دستگاه: ${sel.name}'),pw.SizedBox(height:12),
-      pw.Text('خدمات انجام‌شده',style:pw.TextStyle(fontWeight:pw.FontWeight.bold)),...services.map((s){final dn=_deviceById(s.deviceId)?.name??(c.devices.isNotEmpty?c.devices.first.name:'');return pw.Text('${s.date} | $dn | ${s.description} | ${money(s.amount)}');}),pw.SizedBox(height:12),
-      pw.Text('پرداخت‌ها',style:pw.TextStyle(fontWeight:pw.FontWeight.bold)),...payments.map((p)=>pw.Text('${p.date} | ${p.note} | ${money(p.amount)}')),pw.SizedBox(height:14),
-      pw.Text('جمع خدمات: ${money(ts)}'),pw.Text('جمع پرداختی: ${money(tp)}'),pw.Text('مانده این بازه: ${money(ts-tp)}',style:pw.TextStyle(fontWeight:pw.FontWeight.bold))
-    ]));final bytes=await doc.save();await Printing.sharePdf(bytes:bytes,filename:'performance-report.pdf');
+    doc.addPage(pw.MultiPage(pageFormat:PdfPageFormat.a4,margin:const pw.EdgeInsets.all(28),theme:pw.ThemeData.withFont(base:f,bold:f),textDirection:pw.TextDirection.rtl,build:(ctx)=>[
+      pw.Container(padding:const pw.EdgeInsets.all(16),decoration:pw.BoxDecoration(color:PdfColors.teal50,border:pw.Border.all(color:PdfColors.teal300),borderRadius:pw.BorderRadius.circular(8)),child:pw.Row(mainAxisAlignment:pw.MainAxisAlignment.spaceBetween,children:[
+        pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.start,children:[pw.Text(widget.settings.sellerName.isEmpty?'کارنوپلاس':widget.settings.sellerName,style:pw.TextStyle(fontSize:22,fontWeight:pw.FontWeight.bold)),pw.Text('گزارش عملکرد مشتری',style:pw.TextStyle(fontSize:15,fontWeight:pw.FontWeight.bold))]),
+        pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.end,children:[pw.Text('از $from'),pw.Text('تا $to')])
+      ])),
+      pw.SizedBox(height:14),
+      pw.Container(padding:const pw.EdgeInsets.all(12),decoration:pw.BoxDecoration(border:pw.Border.all(color:PdfColors.grey400),borderRadius:pw.BorderRadius.circular(6)),child:pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.stretch,children:[
+        pw.Text('نام مشتری: ${c.name}',style:pw.TextStyle(fontWeight:pw.FontWeight.bold)),if(c.phone.isNotEmpty)pw.Text('شماره تماس: ${c.phone}'),if(c.address.isNotEmpty)pw.Text('آدرس: ${c.address}'),pw.Text('دستگاه: ${sel?.name ?? 'همه دستگاه‌ها'}')
+      ])),
+      pw.SizedBox(height:16),
+      pw.Row(children:[
+        pw.Expanded(child:pw.Container(padding:const pw.EdgeInsets.all(10),decoration:pw.BoxDecoration(color:PdfColors.grey100,borderRadius:pw.BorderRadius.circular(5)),child:pw.Column(children:[pw.Text('جمع خدمات'),pw.Text(money(ts),style:pw.TextStyle(fontWeight:pw.FontWeight.bold))]))),
+        pw.SizedBox(width:8),pw.Expanded(child:pw.Container(padding:const pw.EdgeInsets.all(10),decoration:pw.BoxDecoration(color:PdfColors.grey100,borderRadius:pw.BorderRadius.circular(5)),child:pw.Column(children:[pw.Text('جمع پرداختی'),pw.Text(money(tp),style:pw.TextStyle(fontWeight:pw.FontWeight.bold))]))),
+        pw.SizedBox(width:8),pw.Expanded(child:pw.Container(padding:const pw.EdgeInsets.all(10),decoration:pw.BoxDecoration(color:PdfColors.teal50,borderRadius:pw.BorderRadius.circular(5)),child:pw.Column(children:[pw.Text('مانده بازه'),pw.Text(money(ts-tp),style:pw.TextStyle(fontWeight:pw.FontWeight.bold))])))
+      ]),
+      pw.SizedBox(height:18),pw.Text('خدمات انجام‌شده',style:pw.TextStyle(fontSize:15,fontWeight:pw.FontWeight.bold)),pw.SizedBox(height:6),
+      if(services.isEmpty)pw.Container(padding:const pw.EdgeInsets.all(12),child:pw.Text('در این بازه خدمتی ثبت نشده است.')) else pw.TableHelper.fromTextArray(
+        headers:['ردیف','تاریخ','دستگاه','شرح خدمت','مبلغ'],
+        data:services.asMap().entries.map((e){final s=e.value;final dn=_deviceById(s.deviceId)?.name??(c.devices.isNotEmpty?c.devices.first.name:'');return ['${e.key+1}',s.date,dn,s.description,money(s.amount)];}).toList(),
+        headerDecoration:const pw.BoxDecoration(color:PdfColors.teal50),headerStyle:pw.TextStyle(fontWeight:pw.FontWeight.bold),border:pw.TableBorder.all(color:PdfColors.grey400),cellAlignment:pw.Alignment.centerRight,cellPadding:const pw.EdgeInsets.all(6)),
+      pw.SizedBox(height:18),pw.Text('پرداخت‌ها',style:pw.TextStyle(fontSize:15,fontWeight:pw.FontWeight.bold)),pw.SizedBox(height:6),
+      if(payments.isEmpty)pw.Container(padding:const pw.EdgeInsets.all(12),child:pw.Text('در این بازه پرداختی ثبت نشده است.')) else pw.TableHelper.fromTextArray(
+        headers:['ردیف','تاریخ','توضیحات','مبلغ'],data:payments.asMap().entries.map((e)=>['${e.key+1}',e.value.date,e.value.note,money(e.value.amount)]).toList(),
+        headerDecoration:const pw.BoxDecoration(color:PdfColors.teal50),headerStyle:pw.TextStyle(fontWeight:pw.FontWeight.bold),border:pw.TableBorder.all(color:PdfColors.grey400),cellAlignment:pw.Alignment.centerRight,cellPadding:const pw.EdgeInsets.all(6)),
+      pw.SizedBox(height:22),pw.Divider(color:PdfColors.grey400),pw.Align(alignment:pw.Alignment.centerLeft,child:pw.Text('کارنوپلاس | گزارش تولیدشده توسط مدیریت سرویس',style:const pw.TextStyle(fontSize:9,color:PdfColors.grey700)))
+    ]));
+    final bytes=await doc.save();await Printing.sharePdf(bytes:bytes,filename:'performance-${c.name}-${from.replaceAll('/','-')}-${to.replaceAll('/','-')}.pdf');
   }
 
   Future<void> _serviceForm({ServiceRecord? record}) async {
@@ -416,21 +436,101 @@ class _CustomerScreenState extends State<CustomerScreen>{
     if(ok!=true)return;final r=record??PaymentRecord(id:newId(),date:'',amount:0);r..amount=double.tryParse(amount.text.replaceAll(',',''))??0..date=date.text.trim()..note=note.text.trim();if(record==null)c.payments.insert(0,r);await _save();
   }
 
-  Future<void> _invoiceForm({InvoiceRecord? invoice}) async {
-    final date=TextEditingController(text:invoice?.date??today()),title=TextEditingController(text:invoice?.title??'فاکتور خدمات'),notes=TextEditingController(text:invoice?.notes??''),seller=TextEditingController(text:invoice?.sellerName.isNotEmpty==true?invoice!.sellerName:widget.settings.sellerName),p1=TextEditingController(text:invoice?.sellerPhone1.isNotEmpty==true?invoice!.sellerPhone1:widget.settings.sellerPhone1),p2=TextEditingController(text:invoice?.sellerPhone2.isNotEmpty==true?invoice!.sellerPhone2:widget.settings.sellerPhone2),card=TextEditingController(text:invoice?.cardNumber.isNotEmpty==true?invoice!.cardNumber:widget.settings.cardNumber),shaba=TextEditingController(text:invoice?.shaba.isNotEmpty==true?invoice!.shaba:widget.settings.shaba);
-    final items=(invoice?.items.map((e)=>InvoiceItem(description:e.description,amount:e.amount)).toList()??[InvoiceItem(description:'',amount:0)]);
-    final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(title:Text(invoice==null?'فاکتور جدید':'ویرایش فاکتور'),content:SizedBox(width:500,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[_field(title,'عنوان فاکتور'),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(seller,'نام فروشنده / مجموعه'),const SizedBox(height:8),_field(p1,'شماره تماس ۱'),const SizedBox(height:8),_field(p2,'شماره تماس ۲'),const SizedBox(height:8),_field(card,'شماره کارت'),const SizedBox(height:8),_field(shaba,'شماره شبا'),const Divider(height:28),...items.asMap().entries.map((e){final dc=TextEditingController(text:e.value.description),ac=TextEditingController(text:e.value.amount==0?'':e.value.amount.toStringAsFixed(0));return Padding(padding:const EdgeInsets.only(bottom:8),child:Row(children:[Expanded(flex:2,child:TextField(controller:dc,decoration:const InputDecoration(labelText:'شرح'),onChanged:(v)=>e.value.description=v)),const SizedBox(width:6),Expanded(child:TextField(controller:ac,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'مبلغ'),onChanged:(v)=>e.value.amount=double.tryParse(v.replaceAll(',',''))??0)),IconButton(onPressed:items.length==1?null:()=>setD(()=>items.removeAt(e.key)),icon:const Icon(Icons.delete_outline))]));}),Align(alignment:Alignment.centerRight,child:TextButton.icon(onPressed:()=>setD(()=>items.add(InvoiceItem(description:'',amount:0))),icon:const Icon(Icons.add),label:const Text('ردیف جدید'))),_field(notes,'توضیحات',lines:2)]))),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]))));
-    if(ok!=true)return;final inv=invoice??InvoiceRecord(id:newId(),date:'',title:'',items:[]);inv..date=date.text.trim()..title=title.text.trim()..notes=notes.text.trim()..sellerName=seller.text.trim()..sellerPhone1=p1.text.trim()..sellerPhone2=p2.text.trim()..cardNumber=card.text.trim()..shaba=shaba.text.trim()..items=items.where((e)=>e.description.trim().isNotEmpty||e.amount!=0).toList();if(invoice==null)c.invoices.insert(0,inv);await _save();
+  String _nextDocumentNumber(String type){
+    final prefix=type=='proforma'?'PF':'INV';
+    final date=today().replaceAll('/','');
+    final count=c.invoices.where((e)=>e.documentType==type).length+1;
+    return '$prefix-$date-${count.toString().padLeft(3,'0')}';
+  }
+
+  Future<void> _invoiceForm({InvoiceRecord? invoice,String? documentType}) async {
+    final type=invoice?.documentType??documentType??'invoice';
+    final date=TextEditingController(text:invoice?.date??today()),
+      title=TextEditingController(text:invoice?.title??(type=='proforma'?'پیش‌فاکتور خدمات':'فاکتور خدمات')),
+      number=TextEditingController(text:invoice?.documentNumber.isNotEmpty==true?invoice!.documentNumber:_nextDocumentNumber(type)),
+      validUntil=TextEditingController(text:invoice?.validUntil??''),
+      notes=TextEditingController(text:invoice?.notes??''),
+      seller=TextEditingController(text:invoice?.sellerName.isNotEmpty==true?invoice!.sellerName:widget.settings.sellerName),
+      p1=TextEditingController(text:invoice?.sellerPhone1.isNotEmpty==true?invoice!.sellerPhone1:widget.settings.sellerPhone1),
+      p2=TextEditingController(text:invoice?.sellerPhone2.isNotEmpty==true?invoice!.sellerPhone2:widget.settings.sellerPhone2),
+      card=TextEditingController(text:invoice?.cardNumber.isNotEmpty==true?invoice!.cardNumber:widget.settings.cardNumber),
+      shaba=TextEditingController(text:invoice?.shaba.isNotEmpty==true?invoice!.shaba:widget.settings.shaba),
+      discount=TextEditingController(text:invoice==null||invoice.discountValue==0?'':(invoice.discountType=='amount'?groupDigits(invoice.discountValue.toStringAsFixed(0)):invoice.discountValue.toStringAsFixed(0)));
+    var discountType=invoice?.discountType??'amount';var status=invoice?.status??'open';
+    final items=(invoice?.items.map((e)=>InvoiceItem(description:e.description,quantity:e.quantity,unitPrice:e.unitPrice)).toList()??[InvoiceItem(description:'',quantity:1,unitPrice:0)]);
+    final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(
+      title:Text(invoice==null?(type=='proforma'?'پیش‌فاکتور جدید':'فاکتور جدید'):'ویرایش ${invoice.typeLabel}'),
+      content:SizedBox(width:560,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
+        Row(children:[Expanded(child:_field(number,'شماره سند')),const SizedBox(width:8),Expanded(child:_field(date,'تاریخ'))]),const SizedBox(height:8),_field(title,'عنوان سند'),
+        if(type=='proforma')...[const SizedBox(height:8),_field(validUntil,'اعتبار تا',hint:'مثلاً 1405/09/30')],
+        const SizedBox(height:8),DropdownButtonFormField<String>(value:status,decoration:const InputDecoration(labelText:'وضعیت سند'),items:[
+          DropdownMenuItem(value:'open',child:Text(type=='proforma'?'باز':'تسویه‌نشده')),if(type=='invoice')const DropdownMenuItem(value:'paid',child:Text('تسویه‌شده')),if(type=='proforma'&&invoice?.status=='converted')const DropdownMenuItem(value:'converted',child:Text('تبدیل‌شده به فاکتور'))
+        ],onChanged:(v){if(v!=null)setD(()=>status=v);}),
+        const Divider(height:28),
+        ...items.asMap().entries.map((e){
+          final dc=TextEditingController(text:e.value.description),qc=TextEditingController(text:e.value.quantity.toStringAsFixed(e.value.quantity%1==0?0:1)),pc=TextEditingController(text:e.value.unitPrice==0?'':groupDigits(e.value.unitPrice.toStringAsFixed(0)));
+          return Padding(padding:const EdgeInsets.only(bottom:10),child:Column(children:[
+            Row(children:[Expanded(child:TextField(controller:dc,decoration:const InputDecoration(labelText:'شرح کالا / خدمت'),onChanged:(v)=>e.value.description=v)),IconButton(onPressed:items.length==1?null:()=>setD(()=>items.removeAt(e.key)),icon:const Icon(Icons.delete_outline))]),
+            const SizedBox(height:6),Row(children:[
+              SizedBox(width:90,child:TextField(controller:qc,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'تعداد'),onChanged:(v)=>e.value.quantity=double.tryParse(v)??1)),const SizedBox(width:6),
+              Expanded(child:TextField(controller:pc,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'فی واحد (تومان)'),onChanged:(v){e.value.unitPrice=double.tryParse(v.replaceAll(',',''))??0;setD((){});})),const SizedBox(width:6),
+              Expanded(child:InputDecorator(decoration:const InputDecoration(labelText:'مبلغ ردیف'),child:Text(money(e.value.amount),style:const TextStyle(fontWeight:FontWeight.bold))))
+            ])
+          ]));
+        }),
+        Align(alignment:Alignment.centerRight,child:TextButton.icon(onPressed:()=>setD(()=>items.add(InvoiceItem(description:'',quantity:1,unitPrice:0))),icon:const Icon(Icons.add),label:const Text('ردیف جدید'))),
+        const Divider(height:24),Row(children:[
+          Expanded(child:DropdownButtonFormField<String>(value:discountType,decoration:const InputDecoration(labelText:'نوع تخفیف'),items:const [DropdownMenuItem(value:'amount',child:Text('مبلغی')),DropdownMenuItem(value:'percent',child:Text('درصدی'))],onChanged:(v){if(v!=null)setD((){discountType=v;discount.clear();});})),
+          const SizedBox(width:8),Expanded(child:TextField(controller:discount,keyboardType:TextInputType.number,inputFormatters:discountType=='amount'?[ThousandsSeparatorInputFormatter()]:[],decoration:InputDecoration(labelText:discountType=='amount'?'تخفیف (تومان)':'تخفیف (درصد)')))
+        ]),
+        const SizedBox(height:12),_field(seller,'نام فروشنده / مجموعه'),const SizedBox(height:8),Row(children:[Expanded(child:_field(p1,'شماره تماس ۱')),const SizedBox(width:8),Expanded(child:_field(p2,'شماره تماس ۲'))]),const SizedBox(height:8),
+        _field(card,'شماره کارت'),const SizedBox(height:8),_field(shaba,'شماره شبا'),const SizedBox(height:8),_field(notes,'توضیحات',lines:2)
+      ]))),
+      actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]
+    )));
+    if(ok!=true)return;final dv=double.tryParse(discount.text.replaceAll(',',''))??0;
+    final inv=invoice??InvoiceRecord(id:newId(),date:'',title:'',items:[],documentType:type);
+    inv..date=date.text.trim()..title=title.text.trim()..documentNumber=number.text.trim()..validUntil=validUntil.text.trim()..notes=notes.text.trim()
+      ..sellerName=seller.text.trim()..sellerPhone1=p1.text.trim()..sellerPhone2=p2.text.trim()..cardNumber=card.text.trim()..shaba=shaba.text.trim()
+      ..discountType=discountType..discountValue=dv..status=status..items=items.where((e)=>e.description.trim().isNotEmpty||e.unitPrice!=0).toList();
+    if(invoice==null)c.invoices.insert(0,inv);await _save();
+  }
+
+  Future<void> _convertProforma(InvoiceRecord p) async {
+    if(!p.isProforma||p.status=='converted')return;
+    final yes=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:const Text('تبدیل پیش‌فاکتور به فاکتور'),content:const Text('یک فاکتور جدید با همین ردیف‌ها و مبالغ ساخته می‌شود و پیش‌فاکتور در سوابق باقی می‌ماند.'),actions:[
+      TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('تبدیل به فاکتور'))
+    ]));
+    if(yes!=true)return;
+    final inv=InvoiceRecord(id:newId(),date:today(),title:'فاکتور خدمات',documentType:'invoice',documentNumber:_nextDocumentNumber('invoice'),
+      items:p.items.map((e)=>InvoiceItem(description:e.description,quantity:e.quantity,unitPrice:e.unitPrice)).toList(),notes:p.notes,sellerName:p.sellerName,sellerPhone1:p.sellerPhone1,sellerPhone2:p.sellerPhone2,cardNumber:p.cardNumber,shaba:p.shaba,discountType:p.discountType,discountValue:p.discountValue,status:'open');
+    c.invoices.insert(0,inv);p.status='converted';p.convertedToInvoiceId=inv.id;await _save();
   }
 
   Future<void> _pdf(InvoiceRecord i) async {
     final font=await rootBundle.load('assets/fonts/NotoNaskhArabic-Regular.ttf');final doc=pw.Document();final f=pw.Font.ttf(font);
-    doc.addPage(pw.MultiPage(pageFormat:PdfPageFormat.a4,theme:pw.ThemeData.withFont(base:f,bold:f),textDirection:pw.TextDirection.rtl,build:(ctx)=>[
-      pw.Container(padding:const pw.EdgeInsets.all(16),decoration:pw.BoxDecoration(color:PdfColors.teal50,borderRadius:pw.BorderRadius.circular(8)),child:pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.stretch,children:[pw.Text(i.sellerName.isEmpty?'کارنوپلاس':i.sellerName,style:pw.TextStyle(fontSize:22,fontWeight:pw.FontWeight.bold)),pw.Text([i.sellerPhone1,i.sellerPhone2].where((e)=>e.isNotEmpty).join(' - '))])),pw.SizedBox(height:18),
-      pw.Row(mainAxisAlignment:pw.MainAxisAlignment.spaceBetween,children:[pw.Text(i.title,style:pw.TextStyle(fontSize:18,fontWeight:pw.FontWeight.bold)),pw.Text('تاریخ: ${i.date}')]),pw.SizedBox(height:10),pw.Text('مشتری: ${c.name}'),if(c.phone.isNotEmpty)pw.Text('تماس: ${c.phone}'),if(c.address.isNotEmpty)pw.Text('آدرس: ${c.address}'),if(c.deviceType.isNotEmpty)pw.Text('نوع دستگاه: ${c.deviceType}'),pw.SizedBox(height:14),
-      pw.TableHelper.fromTextArray(headers:['شرح','مبلغ'],data:i.items.map((e)=>[e.description,money(e.amount)]).toList(),headerStyle:pw.TextStyle(fontWeight:pw.FontWeight.bold),cellAlignment:pw.Alignment.centerRight),pw.SizedBox(height:12),pw.Align(alignment:pw.Alignment.centerLeft,child:pw.Text('جمع کل: ${money(i.total)}',style:pw.TextStyle(fontSize:16,fontWeight:pw.FontWeight.bold))),if(i.cardNumber.isNotEmpty)...[pw.SizedBox(height:12),pw.Text('شماره کارت: ${i.cardNumber}')],if(i.shaba.isNotEmpty)pw.Text('شماره شبا: ${i.shaba}'),if(i.notes.isNotEmpty)...[pw.SizedBox(height:12),pw.Text('توضیحات: ${i.notes}')]
+    doc.addPage(pw.MultiPage(pageFormat:PdfPageFormat.a4,margin:const pw.EdgeInsets.all(26),theme:pw.ThemeData.withFont(base:f,bold:f),textDirection:pw.TextDirection.rtl,build:(ctx)=>[
+      pw.Container(padding:const pw.EdgeInsets.all(16),decoration:pw.BoxDecoration(color:PdfColors.teal50,border:pw.Border.all(color:PdfColors.teal300),borderRadius:pw.BorderRadius.circular(8)),child:pw.Row(mainAxisAlignment:pw.MainAxisAlignment.spaceBetween,children:[
+        pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.start,children:[pw.Text(i.sellerName.isEmpty?'کارنوپلاس':i.sellerName,style:pw.TextStyle(fontSize:22,fontWeight:pw.FontWeight.bold)),pw.Text([i.sellerPhone1,i.sellerPhone2].where((e)=>e.isNotEmpty).join(' - '))]),
+        pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.end,children:[pw.Text(i.typeLabel,style:pw.TextStyle(fontSize:18,fontWeight:pw.FontWeight.bold)),if(i.documentNumber.isNotEmpty)pw.Text('شماره: ${i.documentNumber}'),pw.Text('تاریخ: ${i.date}'),if(i.isProforma&&i.validUntil.isNotEmpty)pw.Text('اعتبار تا: ${i.validUntil}')])
+      ])),
+      pw.SizedBox(height:14),pw.Container(padding:const pw.EdgeInsets.all(12),decoration:pw.BoxDecoration(border:pw.Border.all(color:PdfColors.grey400),borderRadius:pw.BorderRadius.circular(6)),child:pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.stretch,children:[
+        pw.Text('مشتری: ${c.name}',style:pw.TextStyle(fontWeight:pw.FontWeight.bold)),if(c.phone.isNotEmpty)pw.Text('شماره تماس: ${c.phone}'),if(c.address.isNotEmpty)pw.Text('آدرس: ${c.address}'),if(c.devices.isNotEmpty)pw.Text('دستگاه‌ها: ${c.devices.map((e)=>e.name).join('، ')}')
+      ])),
+      pw.SizedBox(height:14),pw.Text(i.title,style:pw.TextStyle(fontSize:16,fontWeight:pw.FontWeight.bold)),pw.SizedBox(height:8),
+      pw.TableHelper.fromTextArray(headers:['ردیف','شرح','تعداد','فی واحد','مبلغ'],data:i.items.asMap().entries.map((e)=>['${e.key+1}',e.value.description,e.value.quantity.toStringAsFixed(e.value.quantity%1==0?0:1),money(e.value.unitPrice),money(e.value.amount)]).toList(),
+        headerDecoration:const pw.BoxDecoration(color:PdfColors.teal50),headerStyle:pw.TextStyle(fontWeight:pw.FontWeight.bold),border:pw.TableBorder.all(color:PdfColors.grey400),cellAlignment:pw.Alignment.centerRight,cellPadding:const pw.EdgeInsets.all(7)),
+      pw.SizedBox(height:12),pw.Align(alignment:pw.Alignment.centerLeft,child:pw.Container(width:250,padding:const pw.EdgeInsets.all(10),decoration:pw.BoxDecoration(border:pw.Border.all(color:PdfColors.grey400),borderRadius:pw.BorderRadius.circular(5)),child:pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.stretch,children:[
+        pw.Row(mainAxisAlignment:pw.MainAxisAlignment.spaceBetween,children:[pw.Text('جمع جزء'),pw.Text(money(i.subtotal))]),
+        if(i.discountAmount>0)pw.Row(mainAxisAlignment:pw.MainAxisAlignment.spaceBetween,children:[pw.Text('تخفیف${i.discountType=='percent'?' (${i.discountValue.toStringAsFixed(0)}٪)':''}'),pw.Text(money(i.discountAmount))]),
+        pw.Divider(),pw.Row(mainAxisAlignment:pw.MainAxisAlignment.spaceBetween,children:[pw.Text('مبلغ نهایی',style:pw.TextStyle(fontWeight:pw.FontWeight.bold)),pw.Text(money(i.total),style:pw.TextStyle(fontWeight:pw.FontWeight.bold))])
+      ]))),
+      pw.SizedBox(height:14),if(i.cardNumber.isNotEmpty||i.shaba.isNotEmpty)pw.Container(padding:const pw.EdgeInsets.all(10),decoration:pw.BoxDecoration(color:PdfColors.grey100,borderRadius:pw.BorderRadius.circular(5)),child:pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.stretch,children:[if(i.cardNumber.isNotEmpty)pw.Text('شماره کارت: ${i.cardNumber}'),if(i.shaba.isNotEmpty)pw.Text('شماره شبا: ${i.shaba}')])),
+      if(i.notes.isNotEmpty)...[pw.SizedBox(height:12),pw.Container(padding:const pw.EdgeInsets.all(10),decoration:pw.BoxDecoration(border:pw.Border.all(color:PdfColors.grey400),borderRadius:pw.BorderRadius.circular(5)),child:pw.Text('توضیحات: ${i.notes}'))],
+      pw.SizedBox(height:24),pw.Row(mainAxisAlignment:pw.MainAxisAlignment.spaceBetween,children:[pw.Column(children:[pw.Text('مهر و امضای فروشنده'),pw.SizedBox(height:32)]),pw.Column(children:[pw.Text('امضای مشتری'),pw.SizedBox(height:32)])]),
+      pw.Divider(color:PdfColors.grey400),pw.Text(i.isProforma?'این سند پیش‌فاکتور است و تا تاریخ درج‌شده معتبر است.':'وضعیت: ${i.statusLabel}',style:const pw.TextStyle(fontSize:9,color:PdfColors.grey700))
     ]));
-    final Uint8List bytes=await doc.save();await Printing.sharePdf(bytes:bytes,filename:'invoice-${c.name}-${i.date.replaceAll('/','-')}.pdf');
+    final Uint8List bytes=await doc.save();await Printing.sharePdf(bytes:bytes,filename:'${i.isProforma?'proforma':'invoice'}-${i.documentNumber.isEmpty?i.id:i.documentNumber}.pdf');
   }
 
   @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text(c.name),actions:[IconButton(onPressed:()async{await widget.onEditCustomer();if(mounted)setState((){});},icon:const Icon(Icons.edit_outlined))]),body:ListView(padding:const EdgeInsets.all(16),children:[
