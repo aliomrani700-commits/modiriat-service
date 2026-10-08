@@ -192,8 +192,9 @@ class Customer {
   List<PaymentRecord> payments;
   List<InvoiceRecord> invoices;
   double get totalServices => services.fold(0, (s, e) => s + e.amount);
+  double get totalInvoices => invoices.where((e) => !e.isProforma).fold(0, (s, e) => s + e.total);
   double get totalPayments => payments.fold(0, (s, e) => s + e.amount);
-  double get balance => totalServices - totalPayments;
+  double get balance => totalInvoices - totalPayments;
   Map<String, dynamic> toJson() => {
         'id': id, 'name': name, 'phone': phone, 'address': address, 'deviceType': deviceType, 'vehicle': deviceType, 'notes': notes,
         'nextServiceDate': nextServiceDate, 'smsTemplateId': smsTemplateId, 'customSms': customSms, 'devices':devices.map((e)=>e.toJson()).toList(),
@@ -473,7 +474,7 @@ class _CustomerScreenState extends State<CustomerScreen>{
             Row(children:[Expanded(child:TextField(controller:dc,decoration:const InputDecoration(labelText:'شرح کالا / خدمت'),onChanged:(v)=>e.value.description=v)),IconButton(onPressed:items.length==1?null:()=>setD(()=>items.removeAt(e.key)),icon:const Icon(Icons.delete_outline))]),
             const SizedBox(height:6),Row(children:[
               SizedBox(width:90,child:TextField(controller:qc,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'تعداد'),onChanged:(v)=>e.value.quantity=double.tryParse(v)??1)),const SizedBox(width:6),
-              Expanded(child:TextField(controller:pc,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'فی واحد (تومان)'),onChanged:(v){e.value.unitPrice=double.tryParse(v.replaceAll(',',''))??0;setD((){});})),const SizedBox(width:6),
+              Expanded(child:TextField(controller:pc,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'فی واحد (تومان)'),onChanged:(v)=>e.value.unitPrice=double.tryParse(v.replaceAll(',',''))??0)),const SizedBox(width:6),
               Expanded(child:InputDecorator(decoration:const InputDecoration(labelText:'مبلغ ردیف'),child:Text(money(e.value.amount),style:const TextStyle(fontWeight:FontWeight.bold))))
             ])
           ]));
@@ -541,7 +542,7 @@ class _CustomerScreenState extends State<CustomerScreen>{
     _section('پرداخت‌ها',c.payments.map((r)=>ListTile(title:Text(money(r.amount)),subtitle:Text('${r.date}${r.note.isEmpty?'':' • ${r.note}'}'),trailing:IconButton(onPressed:()=>_paymentForm(record:r),icon:const Icon(Icons.edit_outlined)))).toList()),
   ]));
 
-  Widget _infoCard()=>Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20)),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Text(c.name,style:const TextStyle(fontSize:22,fontWeight:FontWeight.w800)),const SizedBox(height:8),if(c.phone.isNotEmpty)Text('تلفن: ${c.phone}'),if(c.address.isNotEmpty)Text('آدرس: ${c.address}'),Text('تعداد دستگاه‌ها: ${c.devices.length}'),const Divider(height:24),Text('مانده حساب: ${money(c.balance)}',style:TextStyle(fontWeight:FontWeight.bold,color:c.balance>0?Colors.red.shade700:Colors.green.shade700))]));
+  Widget _infoCard()=>Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20)),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Text(c.name,style:const TextStyle(fontSize:22,fontWeight:FontWeight.w800)),const SizedBox(height:8),if(c.phone.isNotEmpty)Text('تلفن: ${c.phone}'),if(c.address.isNotEmpty)Text('آدرس: ${c.address}'),Text('تعداد دستگاه‌ها: ${c.devices.length}'),const Divider(height:24),Text('مانده فاکتورها: ${money(c.balance)}',style:TextStyle(fontWeight:FontWeight.bold,color:c.balance>0?Colors.red.shade700:Colors.green.shade700))]));
   Widget _section(String title,List<Widget> rows)=>Padding(padding:const EdgeInsets.only(bottom:16),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Text(title,style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800)),const SizedBox(height:8),Container(decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(16)),child:rows.isEmpty?const Padding(padding:EdgeInsets.all(16),child:Text('موردی ثبت نشده')):Column(children:rows))]));
 }
 
