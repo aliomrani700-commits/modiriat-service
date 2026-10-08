@@ -399,11 +399,11 @@ class _CustomerScreenState extends State<CustomerScreen>{
 
   Future<void> _serviceForm({ServiceRecord? record}) async {
     if(c.devices.isEmpty){if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('اول یک دستگاه ثبت کنید')));return;}
-    final desc=TextEditingController(text:record?.description??''),amount=TextEditingController(text:record==null?'':record.amount.toStringAsFixed(0)),date=TextEditingController(text:record?.date??today()),next=TextEditingController(text:record?.nextDate??'');
+    final desc=TextEditingController(text:record?.description??''),amount=TextEditingController(text:record==null?'':groupDigits(record.amount.toStringAsFixed(0))),date=TextEditingController(text:record?.date??today()),next=TextEditingController(text:record?.nextDate??'');
     var deviceId=(record?.deviceId.isNotEmpty==true)?record!.deviceId:c.devices.first.id;if(!c.devices.any((d)=>d.id==deviceId))deviceId=c.devices.first.id;if(record==null)next.text=_deviceById(deviceId)?.nextServiceDate??'';
     final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(title:Text(record==null?'ثبت سرویس':'ویرایش سرویس'),content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
       DropdownButtonFormField<String>(value:deviceId,decoration:const InputDecoration(labelText:'دستگاه'),items:c.devices.map((e)=>DropdownMenuItem(value:e.id,child:Text(e.name))).toList(),onChanged:(v){if(v!=null)setD((){deviceId=v;if(record==null)next.text=_deviceById(v)?.nextServiceDate??'';});}),const SizedBox(height:8),
-      _field(desc,'شرح سرویس'),const SizedBox(height:8),_field(amount,'مبلغ (تومان)',type:TextInputType.number),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(next,'سرویس بعدی')
+      _field(desc,'شرح سرویس'),const SizedBox(height:8),TextField(controller:amount,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'مبلغ (تومان)',hintText:'مثلاً 1,250,000')),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(next,'سرویس بعدی')
     ])),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))])));
     if(ok!=true||desc.text.trim().isEmpty)return;final r=record??ServiceRecord(id:newId(),date:'',description:'',amount:0);
     r..description=desc.text.trim()..amount=double.tryParse(amount.text.replaceAll(',',''))??0..date=date.text.trim()..nextDate=next.text.trim()..deviceId=deviceId;if(record==null)c.services.insert(0,r);
@@ -411,8 +411,8 @@ class _CustomerScreenState extends State<CustomerScreen>{
   }
 
   Future<void> _paymentForm({PaymentRecord? record}) async {
-    final amount=TextEditingController(text:record==null?'':record.amount.toStringAsFixed(0)),date=TextEditingController(text:record?.date??today()),note=TextEditingController(text:record?.note??'');
-    final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:Text(record==null?'ثبت پرداخت':'ویرایش پرداخت'),content:Column(mainAxisSize:MainAxisSize.min,children:[_field(amount,'مبلغ (تومان)',type:TextInputType.number),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(note,'توضیحات')]),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]));
+    final amount=TextEditingController(text:record==null?'':groupDigits(record.amount.toStringAsFixed(0))),date=TextEditingController(text:record?.date??today()),note=TextEditingController(text:record?.note??'');
+    final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:Text(record==null?'ثبت پرداخت':'ویرایش پرداخت'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:amount,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'مبلغ (تومان)',hintText:'مثلاً 1,250,000')),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(note,'توضیحات')]),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]));
     if(ok!=true)return;final r=record??PaymentRecord(id:newId(),date:'',amount:0);r..amount=double.tryParse(amount.text.replaceAll(',',''))??0..date=date.text.trim()..note=note.text.trim();if(record==null)c.payments.insert(0,r);await _save();
   }
 
