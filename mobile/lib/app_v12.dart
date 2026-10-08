@@ -106,29 +106,62 @@ class PaymentRecord {
 }
 
 class InvoiceItem {
-  InvoiceItem({required this.description, required this.amount});
+  InvoiceItem({required this.description, double? amount, this.quantity = 1, double? unitPrice})
+      : unitPrice = unitPrice ?? amount ?? 0;
   String description;
-  double amount;
-  Map<String, dynamic> toJson() => {'description': description, 'amount': amount};
-  factory InvoiceItem.fromJson(Map<String, dynamic> j) => InvoiceItem(description: j['description']?.toString() ?? '', amount: (j['amount'] as num?)?.toDouble() ?? 0);
+  double quantity, unitPrice;
+  double get amount => quantity * unitPrice;
+  Map<String, dynamic> toJson() => {
+        'description': description,
+        'quantity': quantity,
+        'unitPrice': unitPrice,
+        'amount': amount,
+      };
+  factory InvoiceItem.fromJson(Map<String, dynamic> j) {
+    final legacyAmount = (j['amount'] as num?)?.toDouble() ?? 0;
+    final q = (j['quantity'] as num?)?.toDouble() ?? 1;
+    final up = (j['unitPrice'] as num?)?.toDouble() ?? (q == 0 ? legacyAmount : legacyAmount / q);
+    return InvoiceItem(description: j['description']?.toString() ?? '', quantity: q == 0 ? 1 : q, unitPrice: up);
+  }
 }
 
 class InvoiceRecord {
   InvoiceRecord({
     required this.id, required this.date, required this.title, required this.items,
     this.notes = '', this.sellerName = '', this.sellerPhone1 = '', this.sellerPhone2 = '', this.cardNumber = '', this.shaba = '',
+    this.documentType = 'invoice', this.documentNumber = '', this.validUntil = '', this.discountType = 'amount',
+    this.discountValue = 0, this.status = 'open', this.convertedToInvoiceId = '',
   });
   String id, date, title, notes, sellerName, sellerPhone1, sellerPhone2, cardNumber, shaba;
+  String documentType, documentNumber, validUntil, discountType, status, convertedToInvoiceId;
+  double discountValue;
   List<InvoiceItem> items;
-  double get total => items.fold(0, (s, e) => s + e.amount);
+  double get subtotal => items.fold(0, (s, e) => s + e.amount);
+  double get discountAmount => discountType == 'percent'
+      ? (subtotal * discountValue.clamp(0, 100) / 100)
+      : discountValue.clamp(0, subtotal);
+  double get total => (subtotal - discountAmount).clamp(0, double.infinity);
+  bool get isProforma => documentType == 'proforma';
+  String get typeLabel => isProforma ? 'پیش‌فاکتور' : 'فاکتور';
+  String get statusLabel {
+    if (status == 'paid') return 'تسویه‌شده';
+    if (status == 'converted') return 'تبدیل‌شده به فاکتور';
+    return isProforma ? 'باز' : 'تسویه‌نشده';
+  }
   Map<String, dynamic> toJson() => {
         'id': id, 'date': date, 'title': title, 'notes': notes, 'sellerName': sellerName, 'sellerPhone1': sellerPhone1,
         'sellerPhone2': sellerPhone2, 'cardNumber': cardNumber, 'shaba': shaba, 'items': items.map((e) => e.toJson()).toList(),
+        'documentType': documentType, 'documentNumber': documentNumber, 'validUntil': validUntil,
+        'discountType': discountType, 'discountValue': discountValue, 'status': status, 'convertedToInvoiceId': convertedToInvoiceId,
       };
   factory InvoiceRecord.fromJson(Map<String, dynamic> j) => InvoiceRecord(
-        id: j['id']?.toString() ?? '', date: j['date']?.toString() ?? '', title: j['title']?.toString() ?? 'فاکتور', notes: j['notes']?.toString() ?? '',
+        id: j['id']?.toString() ?? '', date: j['date']?.toString() ?? '', title: j['title']?.toString() ?? 'فاکتور خدمات', notes: j['notes']?.toString() ?? '',
         sellerName: j['sellerName']?.toString() ?? '', sellerPhone1: j['sellerPhone1']?.toString() ?? '', sellerPhone2: j['sellerPhone2']?.toString() ?? '',
         cardNumber: j['cardNumber']?.toString() ?? '', shaba: j['shaba']?.toString() ?? '',
+        documentType: j['documentType']?.toString() ?? 'invoice', documentNumber: j['documentNumber']?.toString() ?? '',
+        validUntil: j['validUntil']?.toString() ?? '', discountType: j['discountType']?.toString() ?? 'amount',
+        discountValue: (j['discountValue'] as num?)?.toDouble() ?? 0, status: j['status']?.toString() ?? 'open',
+        convertedToInvoiceId: j['convertedToInvoiceId']?.toString() ?? '',
         items: ((j['items'] as List?) ?? []).map((e) => InvoiceItem.fromJson(Map<String, dynamic>.from(e))).toList());
 }
 
