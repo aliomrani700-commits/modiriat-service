@@ -3,14 +3,6 @@ from pathlib import Path
 src = Path('lib/app_v12.dart')
 x = src.read_text()
 
-# Repair compact dialog closures and invoice list line from the source snapshot.
-x = x.replace(']))));', '])));')
-lines = x.splitlines()
-for idx, line in enumerate(lines):
-    if "_section('فاکتورهای صادرشده'" in line:
-        lines[idx] = "    _section('فاکتورهای صادرشده', c.invoices.map((i) => ListTile(title: Text(i.title), subtitle: Text('${i.date} • ${money(i.total)}'), trailing: Wrap(spacing: 0, children: [IconButton(onPressed: () => _pdf(i), icon: const Icon(Icons.picture_as_pdf_outlined)), IconButton(onPressed: () => _invoiceForm(invoice: i), icon: const Icon(Icons.edit_outlined))]))).toList()),"
-x = '\n'.join(lines) + '\n'
-
 anchor = "String newId() => DateTime.now().microsecondsSinceEpoch.toString();\n"
 formatter = """
 
