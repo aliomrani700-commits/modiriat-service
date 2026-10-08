@@ -130,10 +130,10 @@ class InvoiceRecord {
     required this.id, required this.date, required this.title, required this.items,
     this.notes = '', this.sellerName = '', this.sellerPhone1 = '', this.sellerPhone2 = '', this.cardNumber = '', this.shaba = '',
     this.documentType = 'invoice', this.documentNumber = '', this.validUntil = '', this.discountType = 'amount',
-    this.discountValue = 0, this.status = 'open', this.convertedToInvoiceId = '',
+    this.discountValue = 0, this.status = 'open', this.convertedToInvoiceId = '', this.internalName = '',
   });
   String id, date, title, notes, sellerName, sellerPhone1, sellerPhone2, cardNumber, shaba;
-  String documentType, documentNumber, validUntil, discountType, status, convertedToInvoiceId;
+  String documentType, documentNumber, validUntil, discountType, status, convertedToInvoiceId, internalName;
   double discountValue;
   List<InvoiceItem> items;
   double get subtotal => items.fold(0, (s, e) => s + e.amount);
@@ -152,7 +152,7 @@ class InvoiceRecord {
         'id': id, 'date': date, 'title': title, 'notes': notes, 'sellerName': sellerName, 'sellerPhone1': sellerPhone1,
         'sellerPhone2': sellerPhone2, 'cardNumber': cardNumber, 'shaba': shaba, 'items': items.map((e) => e.toJson()).toList(),
         'documentType': documentType, 'documentNumber': documentNumber, 'validUntil': validUntil,
-        'discountType': discountType, 'discountValue': discountValue, 'status': status, 'convertedToInvoiceId': convertedToInvoiceId,
+        'discountType': discountType, 'discountValue': discountValue, 'status': status, 'convertedToInvoiceId': convertedToInvoiceId, 'internalName': internalName,
       };
   factory InvoiceRecord.fromJson(Map<String, dynamic> j) => InvoiceRecord(
         id: j['id']?.toString() ?? '', date: j['date']?.toString() ?? '', title: j['title']?.toString() ?? 'فاکتور خدمات', notes: j['notes']?.toString() ?? '',
@@ -161,7 +161,7 @@ class InvoiceRecord {
         documentType: j['documentType']?.toString() ?? 'invoice', documentNumber: j['documentNumber']?.toString() ?? '',
         validUntil: j['validUntil']?.toString() ?? '', discountType: j['discountType']?.toString() ?? 'amount',
         discountValue: (j['discountValue'] as num?)?.toDouble() ?? 0, status: j['status']?.toString() ?? 'open',
-        convertedToInvoiceId: j['convertedToInvoiceId']?.toString() ?? '',
+        convertedToInvoiceId: j['convertedToInvoiceId']?.toString() ?? '', internalName: j['internalName']?.toString() ?? j['title']?.toString() ?? '',
         items: ((j['items'] as List?) ?? []).map((e) => InvoiceItem.fromJson(Map<String, dynamic>.from(e))).toList());
 }
 
@@ -447,6 +447,7 @@ class _CustomerScreenState extends State<CustomerScreen>{
   Future<void> _invoiceForm({InvoiceRecord? invoice,String? documentType}) async {
     final type=invoice?.documentType??documentType??'invoice';
     final date=TextEditingController(text:invoice?.date??today()),
+      internalName=TextEditingController(text:invoice?.internalName??''),
       title=TextEditingController(text:invoice?.title??(type=='proforma'?'پیش‌فاکتور خدمات':'فاکتور خدمات')),
       number=TextEditingController(text:invoice?.documentNumber.isNotEmpty==true?invoice!.documentNumber:_nextDocumentNumber(type)),
       validUntil=TextEditingController(text:invoice?.validUntil??''),
@@ -462,7 +463,8 @@ class _CustomerScreenState extends State<CustomerScreen>{
     final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(
       title:Text(invoice==null?(type=='proforma'?'پیش‌فاکتور جدید':'فاکتور جدید'):'ویرایش ${invoice.typeLabel}'),
       content:SizedBox(width:560,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
-        Row(children:[Expanded(child:_field(number,'شماره سند')),const SizedBox(width:8),Expanded(child:_field(date,'تاریخ'))]),const SizedBox(height:8),_field(title,type=='proforma'?'نام پیش‌فاکتور':'نام فاکتور',hint:'مثلاً فروش پمپ آقای احمدی'),
+        _field(internalName,type=='proforma'?'نام پیش‌فاکتور (فقط داخل برنامه)':'نام فاکتور (فقط داخل برنامه)',hint:'مثلاً پروژه سعادت‌آباد'),const SizedBox(height:8),
+        Row(children:[Expanded(child:_field(number,'شماره سند')),const SizedBox(width:8),Expanded(child:_field(date,'تاریخ'))]),const SizedBox(height:8),_field(title,'عنوان داخل سند',hint:type=='proforma'?'پیش‌فاکتور خدمات':'فاکتور خدمات'),
         if(type=='proforma')...[const SizedBox(height:8),_field(validUntil,'اعتبار تا',hint:'مثلاً 1405/09/30')],
         const SizedBox(height:8),DropdownButtonFormField<String>(value:status,decoration:const InputDecoration(labelText:'وضعیت سند'),items:[
           DropdownMenuItem(value:'open',child:Text(type=='proforma'?'باز':'تسویه‌نشده')),if(type=='invoice')const DropdownMenuItem(value:'paid',child:Text('تسویه‌شده')),if(type=='proforma'&&invoice?.status=='converted')const DropdownMenuItem(value:'converted',child:Text('تبدیل‌شده به فاکتور'))
@@ -491,7 +493,7 @@ class _CustomerScreenState extends State<CustomerScreen>{
     )));
     if(ok!=true)return;final dv=double.tryParse(discount.text.replaceAll(',',''))??0;
     final inv=invoice??InvoiceRecord(id:newId(),date:'',title:'',items:[],documentType:type);
-    inv..date=date.text.trim()..title=title.text.trim()..documentNumber=number.text.trim()..validUntil=validUntil.text.trim()..notes=notes.text.trim()
+    inv..date=date.text.trim()..internalName=internalName.text.trim()..title=title.text.trim()..documentNumber=number.text.trim()..validUntil=validUntil.text.trim()..notes=notes.text.trim()
       ..sellerName=seller.text.trim()..sellerPhone1=p1.text.trim()..sellerPhone2=p2.text.trim()..cardNumber=card.text.trim()..shaba=shaba.text.trim()
       ..discountType=discountType..discountValue=dv..status=status..items=items.where((e)=>e.description.trim().isNotEmpty||e.unitPrice!=0).toList();
     if(invoice==null)c.invoices.insert(0,inv);await _save();
@@ -503,7 +505,7 @@ class _CustomerScreenState extends State<CustomerScreen>{
       TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('تبدیل به فاکتور'))
     ]));
     if(yes!=true)return;
-    final inv=InvoiceRecord(id:newId(),date:today(),title:p.title.trim().isEmpty?'فاکتور خدمات':p.title,documentType:'invoice',documentNumber:_nextDocumentNumber('invoice'),
+    final inv=InvoiceRecord(id:newId(),date:today(),title:'فاکتور خدمات',internalName:p.internalName.trim().isEmpty?p.title:p.internalName,documentType:'invoice',documentNumber:_nextDocumentNumber('invoice'),
       items:p.items.map((e)=>InvoiceItem(description:e.description,quantity:e.quantity,unitPrice:e.unitPrice)).toList(),notes:p.notes,sellerName:p.sellerName,sellerPhone1:p.sellerPhone1,sellerPhone2:p.sellerPhone2,cardNumber:p.cardNumber,shaba:p.shaba,discountType:p.discountType,discountValue:p.discountValue,status:'open');
     c.invoices.insert(0,inv);p.status='converted';p.convertedToInvoiceId=inv.id;await _save();
   }
@@ -533,13 +535,13 @@ class _CustomerScreenState extends State<CustomerScreen>{
       pw.SizedBox(height:24),pw.Row(mainAxisAlignment:pw.MainAxisAlignment.spaceBetween,children:[pw.Column(children:[pw.Text('مهر و امضای فروشنده'),pw.SizedBox(height:32)]),pw.Column(children:[pw.Text('امضای مشتری'),pw.SizedBox(height:32)])]),
       pw.Divider(color:PdfColors.grey400),pw.Text(i.isProforma?'این سند پیش‌فاکتور است و تا تاریخ درج‌شده معتبر است.':'وضعیت: ${i.statusLabel}',style:const pw.TextStyle(fontSize:9,color:PdfColors.grey700))
     ]));
-    final Uint8List bytes=await doc.save();final rawName=i.title.trim().isEmpty?'${i.isProforma?'پیش‌فاکتور':'فاکتور'}-${i.documentNumber.isEmpty?i.id:i.documentNumber}':i.title.trim();final safeName=rawName.replaceAll(RegExp(r'[\\/:*?"<>|]'),' ').replaceAll(RegExp(r'\s+'),' ').trim();await Printing.sharePdf(bytes:bytes,filename:'${safeName.isEmpty?'document':safeName}.pdf');
+    final Uint8List bytes=await doc.save();final rawName=i.internalName.trim().isEmpty?'${i.isProforma?'پیش‌فاکتور':'فاکتور'}-${i.documentNumber.isEmpty?i.id:i.documentNumber}':i.internalName.trim();final safeName=rawName.replaceAll(RegExp(r'[\\/:*?"<>|]'),' ').replaceAll(RegExp(r'\s+'),' ').trim();await Printing.sharePdf(bytes:bytes,filename:'${safeName.isEmpty?'document':safeName}.pdf');
   }
 
   @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text(c.name),actions:[IconButton(onPressed:()async{await widget.onEditCustomer();if(mounted)setState((){});},icon:const Icon(Icons.edit_outlined))]),body:ListView(padding:const EdgeInsets.all(16),children:[
     _infoCard(),const SizedBox(height:12),Row(children:[Expanded(child:FilledButton.icon(onPressed:()=>_serviceForm(),icon:const Icon(Icons.build_outlined),label:const Text('ثبت سرویس'))),const SizedBox(width:8),Expanded(child:FilledButton.tonalIcon(onPressed:()=>_paymentForm(),icon:const Icon(Icons.payments_outlined),label:const Text('ثبت پرداخت')))]),const SizedBox(height:8),Row(children:[Expanded(child:FilledButton.tonalIcon(onPressed:()=>_invoiceForm(documentType:'invoice'),icon:const Icon(Icons.receipt_long_outlined),label:const Text('فاکتور جدید'))),const SizedBox(width:8),Expanded(child:FilledButton.tonalIcon(onPressed:()=>_invoiceForm(documentType:'proforma'),icon:const Icon(Icons.request_quote_outlined),label:const Text('پیش‌فاکتور')))]),const SizedBox(height:8),Row(children:[Expanded(child:OutlinedButton.icon(onPressed:_reportDialog,icon:const Icon(Icons.analytics_outlined),label:const Text('گزارش عملکرد'))),const SizedBox(width:8),Expanded(child:OutlinedButton.icon(onPressed:()=>_deviceForm(),icon:const Icon(Icons.add_circle_outline),label:const Text('افزودن دستگاه')))]),const SizedBox(height:20),
     _section('دستگاه‌های مشتری',c.devices.map((d)=>ListTile(title:Text(d.name),subtitle:Text(d.nextServiceDate.isEmpty?d.notes:'سرویس بعدی: ${d.nextServiceDate}\n${d.notes}'),trailing:Wrap(spacing:0,children:[IconButton(onPressed:()=>_deviceSmsEditor(d),icon:const Icon(Icons.sms_outlined)),IconButton(onPressed:()=>_deviceForm(device:d),icon:const Icon(Icons.edit_outlined))]))).toList()),
-    _section('فاکتورها و پیش‌فاکتورها',c.invoices.map((i)=>ListTile(title:Text(i.title.trim().isEmpty?'${i.typeLabel} ${i.documentNumber}':i.title,style:const TextStyle(fontWeight:FontWeight.w700)),subtitle:Text('${i.typeLabel}${i.documentNumber.isEmpty?'':' • ${i.documentNumber}'}\n${i.date} • ${money(i.total)} • ${i.statusLabel}'),isThreeLine:true,trailing:Wrap(spacing:0,children:[if(i.isProforma&&i.status!='converted')IconButton(onPressed:()=>_convertProforma(i),icon:const Icon(Icons.transform_outlined),tooltip:'تبدیل به فاکتور'),IconButton(onPressed:()=>_pdf(i),icon:const Icon(Icons.picture_as_pdf_outlined),tooltip:'PDF'),IconButton(onPressed:()=>_invoiceForm(invoice:i),icon:const Icon(Icons.edit_outlined),tooltip:'ویرایش')]))).toList()),
+    _section('فاکتورها و پیش‌فاکتورها',c.invoices.map((i)=>ListTile(title:Text(i.internalName.trim().isEmpty?'${i.typeLabel} ${i.documentNumber}':i.internalName,style:const TextStyle(fontWeight:FontWeight.w700)),subtitle:Text('${i.typeLabel}${i.documentNumber.isEmpty?'':' • ${i.documentNumber}'}\n${i.date} • ${money(i.total)} • ${i.statusLabel}'),isThreeLine:true,trailing:Wrap(spacing:0,children:[if(i.isProforma&&i.status!='converted')IconButton(onPressed:()=>_convertProforma(i),icon:const Icon(Icons.transform_outlined),tooltip:'تبدیل به فاکتور'),IconButton(onPressed:()=>_pdf(i),icon:const Icon(Icons.picture_as_pdf_outlined),tooltip:'PDF'),IconButton(onPressed:()=>_invoiceForm(invoice:i),icon:const Icon(Icons.edit_outlined),tooltip:'ویرایش')]))).toList()),
     _section('سابقه خدمات',c.services.map((r)=>ListTile(title:Text(r.description),subtitle:Text('${_deviceById(r.deviceId)?.name ?? (c.devices.isNotEmpty?c.devices.first.name:'')} • ${r.date} • ${money(r.amount)}${r.nextDate.isEmpty?'':'\nسرویس بعدی: ${r.nextDate}'}'),trailing:IconButton(onPressed:()=>_serviceForm(record:r),icon:const Icon(Icons.edit_outlined)))).toList()),
     _section('پرداخت‌ها',c.payments.map((r)=>ListTile(title:Text(money(r.amount)),subtitle:Text('${r.date}${r.note.isEmpty?'':' • ${r.note}'}'),trailing:IconButton(onPressed:()=>_paymentForm(record:r),icon:const Icon(Icons.edit_outlined)))).toList()),
   ]));
