@@ -54,11 +54,14 @@ class AppSettings {
     this.smsHour = 9,
     this.smsMinute = 0,
     this.autoBackup = true,
+    this.smsEnabled = true,
+    this.smsPausedAt = '',
     this.completionSmsTemplate = '{نام} عزیز، از اعتماد شما به کارنوپلاس متشکریم. خدمات انجام‌شده برای {دستگاه}: {شرح}. سرویس دوره‌ای بعدی در تاریخ {تاریخ} است و در موعد مقرر به شما یادآوری می‌کنیم.',
   });
   String sellerName, sellerPhone1, sellerPhone2, cardNumber, shaba, completionSmsTemplate;
   int smsHour, smsMinute;
-  bool autoBackup;
+  bool autoBackup, smsEnabled;
+  String smsPausedAt;
   Map<String, dynamic> toJson() => {
         'sellerName': sellerName,
         'sellerPhone1': sellerPhone1,
@@ -68,6 +71,8 @@ class AppSettings {
         'smsHour': smsHour,
         'smsMinute': smsMinute,
         'autoBackup': autoBackup,
+        'smsEnabled': smsEnabled,
+        'smsPausedAt': smsPausedAt,
         'completionSmsTemplate': completionSmsTemplate,
       };
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
@@ -79,6 +84,8 @@ class AppSettings {
         smsHour: (j['smsHour'] as num?)?.toInt() ?? 9,
         smsMinute: (j['smsMinute'] as num?)?.toInt() ?? 0,
         autoBackup: j['autoBackup'] != false,
+        smsEnabled: j['smsEnabled'] != false,
+        smsPausedAt: j['smsPausedAt']?.toString() ?? '',
         completionSmsTemplate: j['completionSmsTemplate']?.toString() ?? '{نام} عزیز، از اعتماد شما به کارنوپلاس متشکریم. خدمات انجام‌شده برای {دستگاه}: {شرح}. سرویس دوره‌ای بعدی در تاریخ {تاریخ} است و در موعد مقرر به شما یادآوری می‌کنیم.',
       );
 }
@@ -358,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if(mounted)setState((){});
   }
 
-  Future<void> _settings() async { await Navigator.push(context,MaterialPageRoute(builder:(_)=>SettingsScreen(settings:settings,templates:templates,onSave:()async{await _saveCore();await _scheduleAll();}))); if(mounted)setState((){}); }
+  Future<void> _settings() async { await Navigator.push(context,MaterialPageRoute(builder:(_)=>SettingsScreen(settings:settings,templates:templates,onSave:()async{await _saveCore();await _scheduleAll();},onSmsToggle:_setSmsEnabled))); if(mounted)setState((){}); }
 
   @override Widget build(BuildContext context)=>Scaffold(
     appBar:AppBar(title:const Text('کارنوپلاس | مدیریت سرویس',style:TextStyle(fontWeight:FontWeight.w800)),actions:[IconButton(onPressed:_backupDialog,icon:const Icon(Icons.backup_outlined),tooltip:'بکاپ'),IconButton(onPressed:_settings,icon:const Icon(Icons.settings_outlined),tooltip:'تنظیمات')]),
@@ -647,18 +654,18 @@ class _CustomerScreenState extends State<CustomerScreen>{
 }
 
 class SettingsScreen extends StatefulWidget{
-  const SettingsScreen({super.key,required this.settings,required this.templates,required this.onSave});final AppSettings settings;final List<SmsTemplate> templates;final Future<void> Function() onSave;
+  const SettingsScreen({super.key,required this.settings,required this.templates,required this.onSave,required this.onSmsToggle});final AppSettings settings;final List<SmsTemplate> templates;final Future<void> Function() onSave;final Future<void> Function(bool) onSmsToggle;
   @override State<SettingsScreen> createState()=>_SettingsScreenState();
 }
 class _SettingsScreenState extends State<SettingsScreen>{
-  late TextEditingController seller,p1,p2,card,shaba,completionSms;late int hour,minute;late bool autoBackup;
-  @override void initState(){super.initState();seller=TextEditingController(text:widget.settings.sellerName);p1=TextEditingController(text:widget.settings.sellerPhone1);p2=TextEditingController(text:widget.settings.sellerPhone2);card=TextEditingController(text:widget.settings.cardNumber);shaba=TextEditingController(text:widget.settings.shaba);completionSms=TextEditingController(text:widget.settings.completionSmsTemplate);hour=widget.settings.smsHour;minute=widget.settings.smsMinute;autoBackup=widget.settings.autoBackup;}
+  late TextEditingController seller,p1,p2,card,shaba,completionSms;late int hour,minute;late bool autoBackup,smsEnabled;
+  @override void initState(){super.initState();seller=TextEditingController(text:widget.settings.sellerName);p1=TextEditingController(text:widget.settings.sellerPhone1);p2=TextEditingController(text:widget.settings.sellerPhone2);card=TextEditingController(text:widget.settings.cardNumber);shaba=TextEditingController(text:widget.settings.shaba);completionSms=TextEditingController(text:widget.settings.completionSmsTemplate);hour=widget.settings.smsHour;minute=widget.settings.smsMinute;autoBackup=widget.settings.autoBackup;smsEnabled=widget.settings.smsEnabled;}
   Future<void> _templateEdit(SmsTemplate t)async{final title=TextEditingController(text:t.title),body=TextEditingController(text:t.body);final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:const Text('ویرایش قالب پیامک'),content:Column(mainAxisSize:MainAxisSize.min,children:[_field(title,'نام قالب'),const SizedBox(height:8),_field(body,'متن پیامک',lines:6,hint:'{نام} {دستگاه} {تاریخ}')]),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]));if(ok==true){t..title=title.text.trim()..body=body.text.trim();await widget.onSave();if(mounted)setState((){});}}
   Future<void> _enableSms()async{final ok=await Permission.sms.request();if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(ok.isGranted?'مجوز پیامک فعال شد':'مجوز پیامک داده نشد')));}
-  Future<void> _save()async{widget.settings..sellerName=seller.text.trim()..sellerPhone1=p1.text.trim()..sellerPhone2=p2.text.trim()..cardNumber=card.text.trim()..shaba=shaba.text.trim()..completionSmsTemplate=completionSms.text.trim()..smsHour=hour..smsMinute=minute..autoBackup=autoBackup;await widget.onSave();if(mounted)Navigator.pop(context);}
+  Future<void> _save()async{widget.settings..sellerName=seller.text.trim()..sellerPhone1=p1.text.trim()..sellerPhone2=p2.text.trim()..cardNumber=card.text.trim()..shaba=shaba.text.trim()..completionSmsTemplate=completionSms.text.trim()..smsHour=hour..smsMinute=minute..autoBackup=autoBackup;await widget.onSmsToggle(smsEnabled);await widget.onSave();if(mounted)Navigator.pop(context);}
   @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('تنظیمات')),body:ListView(padding:const EdgeInsets.all(16),children:[const Text('اطلاعات پیش‌فرض فاکتور',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),const SizedBox(height:10),_field(seller,'نام مجموعه'),const SizedBox(height:8),_field(p1,'شماره تماس ۱'),const SizedBox(height:8),_field(p2,'شماره تماس ۲'),const SizedBox(height:8),_field(card,'شماره کارت'),const SizedBox(height:8),_field(shaba,'شماره شبا'),const SizedBox(height:20),
     const Text('پیامک پایان کار',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),const SizedBox(height:8),_field(completionSms,'متن پیام پایان کار',lines:5,hint:'متغیرها: {نام} {دستگاه} {شرح} {تاریخ}'),const SizedBox(height:20),
-    const Text('پیامک یادآوری',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),const SizedBox(height:8),Row(children:[Expanded(child:DropdownButtonFormField<int>(value:hour,decoration:const InputDecoration(labelText:'ساعت'),items:List.generate(24,(i)=>DropdownMenuItem(value:i,child:Text(i.toString().padLeft(2,'0')))),onChanged:(v)=>setState(()=>hour=v??9))),const SizedBox(width:8),Expanded(child:DropdownButtonFormField<int>(value:minute,decoration:const InputDecoration(labelText:'دقیقه'),items:[0,15,30,45].map((i)=>DropdownMenuItem(value:i,child:Text(i.toString().padLeft(2,'0')))).toList(),onChanged:(v)=>setState(()=>minute=v??0)))]),const SizedBox(height:8),OutlinedButton.icon(onPressed:_enableSms,icon:const Icon(Icons.sms),label:const Text('فعال‌سازی مجوز پیامک')),const SizedBox(height:8),...widget.templates.map((t)=>Card(child:ListTile(title:Text(t.title),subtitle:Text(t.body,maxLines:2,overflow:TextOverflow.ellipsis),trailing:IconButton(onPressed:()=>_templateEdit(t),icon:const Icon(Icons.edit_outlined))))),const SizedBox(height:16),SwitchListTile(value:autoBackup,onChanged:(v)=>setState(()=>autoBackup=v),title:const Text('بکاپ خودکار روزانه'),subtitle:const Text('روزی یک‌بار هنگام باز شدن برنامه در Downloads ذخیره می‌شود')),const SizedBox(height:16),FilledButton.icon(onPressed:_save,icon:const Icon(Icons.save_outlined),label:const Text('ذخیره تنظیمات'))]));
+    const Text('پیامک یادآوری',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),const SizedBox(height:8),SwitchListTile(value:smsEnabled,onChanged:(v)=>setState(()=>smsEnabled=v),title:const Text('ارسال خودکار پیامک'),subtitle:Text(smsEnabled?'فعال است؛ پیام‌ها طبق زمان‌بندی ارسال می‌شوند':'متوقف است؛ پیام‌های این بازه بعد از فعال‌سازی ارسال می‌شوند')),const SizedBox(height:8),Row(children:[Expanded(child:DropdownButtonFormField<int>(value:hour,decoration:const InputDecoration(labelText:'ساعت'),items:List.generate(24,(i)=>DropdownMenuItem(value:i,child:Text(i.toString().padLeft(2,'0')))),onChanged:(v)=>setState(()=>hour=v??9))),const SizedBox(width:8),Expanded(child:DropdownButtonFormField<int>(value:minute,decoration:const InputDecoration(labelText:'دقیقه'),items:[0,15,30,45].map((i)=>DropdownMenuItem(value:i,child:Text(i.toString().padLeft(2,'0')))).toList(),onChanged:(v)=>setState(()=>minute=v??0)))]),const SizedBox(height:8),OutlinedButton.icon(onPressed:_enableSms,icon:const Icon(Icons.sms),label:const Text('فعال‌سازی مجوز پیامک')),const SizedBox(height:8),...widget.templates.map((t)=>Card(child:ListTile(title:Text(t.title),subtitle:Text(t.body,maxLines:2,overflow:TextOverflow.ellipsis),trailing:IconButton(onPressed:()=>_templateEdit(t),icon:const Icon(Icons.edit_outlined))))),const SizedBox(height:16),SwitchListTile(value:autoBackup,onChanged:(v)=>setState(()=>autoBackup=v),title:const Text('بکاپ خودکار روزانه'),subtitle:const Text('روزی یک‌بار هنگام باز شدن برنامه در Downloads ذخیره می‌شود')),const SizedBox(height:16),FilledButton.icon(onPressed:_save,icon:const Icon(Icons.save_outlined),label:const Text('ذخیره تنظیمات'))]));
 }
 
 Widget _field(TextEditingController c,String label,{int lines=1,TextInputType? type,String? hint})=>TextField(controller:c,maxLines:lines,keyboardType:type,decoration:InputDecoration(labelText:label,hintText:hint));
