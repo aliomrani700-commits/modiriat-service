@@ -1,7 +1,7 @@
 name: modiriat_service
 description: اپ مدیریت سرویس و پرونده مشتری
 publish_to: 'none'
-version: 1.10.0+10
+version: 1.11.0+11
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
