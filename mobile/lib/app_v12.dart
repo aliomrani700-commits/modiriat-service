@@ -14,6 +14,7 @@ const _storageKey = 'modiriat_service_customers_v1';
 const _templatesKey = 'modiriat_service_sms_templates_v1';
 const _settingsKey = 'modiriat_service_settings_v2';
 const _dailyBackupKey = 'modiriat_service_last_daily_backup';
+const _tasksKey = 'modiriat_service_daily_tasks_v1';
 const _channel = MethodChannel('modiriat_service/sms');
 
 void runModiriatService() => runApp(const ModiriatServiceApp());
@@ -53,8 +54,9 @@ class AppSettings {
     this.smsHour = 9,
     this.smsMinute = 0,
     this.autoBackup = true,
+    this.completionSmsTemplate = '{نام} عزیز، از اعتماد شما به کارنوپلاس متشکریم. خدمات انجام‌شده برای {دستگاه}: {شرح}. سرویس دوره‌ای بعدی در تاریخ {تاریخ} است و در موعد مقرر به شما یادآوری می‌کنیم.',
   });
-  String sellerName, sellerPhone1, sellerPhone2, cardNumber, shaba;
+  String sellerName, sellerPhone1, sellerPhone2, cardNumber, shaba, completionSmsTemplate;
   int smsHour, smsMinute;
   bool autoBackup;
   Map<String, dynamic> toJson() => {
@@ -66,6 +68,7 @@ class AppSettings {
         'smsHour': smsHour,
         'smsMinute': smsMinute,
         'autoBackup': autoBackup,
+        'completionSmsTemplate': completionSmsTemplate,
       };
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
         sellerName: j['sellerName']?.toString() ?? 'کارنوپلاس',
@@ -76,6 +79,7 @@ class AppSettings {
         smsHour: (j['smsHour'] as num?)?.toInt() ?? 9,
         smsMinute: (j['smsMinute'] as num?)?.toInt() ?? 0,
         autoBackup: j['autoBackup'] != false,
+        completionSmsTemplate: j['completionSmsTemplate']?.toString() ?? '{نام} عزیز، از اعتماد شما به کارنوپلاس متشکریم. خدمات انجام‌شده برای {دستگاه}: {شرح}. سرویس دوره‌ای بعدی در تاریخ {تاریخ} است و در موعد مقرر به شما یادآوری می‌کنیم.',
       );
 }
 
@@ -183,6 +187,17 @@ List<DeviceRecord> _devicesFromJson(Map<String,dynamic> j){
   return [DeviceRecord(id:'legacy-'+(j['id']?.toString()??newId()),name:name.isEmpty?'دستگاه اول':name,nextServiceDate:next,smsTemplateId:j['smsTemplateId']?.toString()??'',customSms:j['customSms']?.toString()??'')];
 }
 
+
+class DailyTask {
+  DailyTask({required this.id,required this.title,required this.date,this.notes='',this.done=false});
+  String id,title,date,notes;
+  bool done;
+  Map<String,dynamic> toJson()=>{'id':id,'title':title,'date':date,'notes':notes,'done':done};
+  factory DailyTask.fromJson(Map<String,dynamic> j)=>DailyTask(
+    id:j['id']?.toString()??newId(),title:j['title']?.toString()??'',date:j['date']?.toString()??today(),
+    notes:j['notes']?.toString()??'',done:j['done']==true);
+}
+
 class Customer {
   Customer({required this.id, required this.name, this.phone = '', this.address = '', this.deviceType = '', this.notes = '', this.nextServiceDate = '', this.smsTemplateId = '', this.customSms = '', List<DeviceRecord>? devices, List<ServiceRecord>? services, List<PaymentRecord>? payments, List<InvoiceRecord>? invoices})
       : devices = devices ?? [], services = services ?? [], payments = payments ?? [], invoices = invoices ?? [];
@@ -221,6 +236,7 @@ String money(double v) => '${v.round().toString().replaceAllMapped(RegExp(r'\B(?
 String newId() => DateTime.now().microsecondsSinceEpoch.toString();
 
 String renderDeviceSms(String body,Customer c,DeviceRecord d)=>body.replaceAll('{نام}',c.name).replaceAll('{دستگاه}',d.name).replaceAll('{تاریخ}',d.nextServiceDate);
+String renderCompletionSms(String body,Customer c,DeviceRecord d,String description,String nextDate)=>body.replaceAll('{نام}',c.name).replaceAll('{دستگاه}',d.name).replaceAll('{شرح}',description).replaceAll('{تاریخ}',nextDate.trim().isEmpty?'ثبت نشده':nextDate.trim());
 int alarmIdFor(Customer c,DeviceRecord d)=>(c.id+':'+d.id).hashCode & 0x7fffffff;
 String nearestService(Customer c){final a=c.devices.map((d)=>d.nextServiceDate).where((e)=>e.isNotEmpty).toList()..sort();return a.isEmpty?'':a.first;}
 
@@ -238,6 +254,7 @@ class HomeScreen extends StatefulWidget { const HomeScreen({super.key}); @overri
 class _HomeScreenState extends State<HomeScreen> {
   final List<Customer> customers = [];
   final List<SmsTemplate> templates = [];
+  final List<DailyTask> tasks = [];
   AppSettings settings = AppSettings();
   final search = TextEditingController();
   bool loading = true;
@@ -250,6 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try { final r = p.getString(_storageKey); if (r != null) customers.addAll((jsonDecode(r) as List).map((e) => Customer.fromJson(Map<String,dynamic>.from(e)))); } catch (_) {}
     try { final r = p.getString(_templatesKey); if (r != null) templates.addAll((jsonDecode(r) as List).map((e) => SmsTemplate.fromJson(Map<String,dynamic>.from(e)))); } catch (_) {}
     try { final r = p.getString(_settingsKey); if (r != null) settings = AppSettings.fromJson(Map<String,dynamic>.from(jsonDecode(r))); } catch (_) {}
+    try { final r = p.getString(_tasksKey); if (r != null) tasks.addAll((jsonDecode(r) as List).map((e)=>DailyTask.fromJson(Map<String,dynamic>.from(e)))); } catch (_) {}
     if (templates.isEmpty) templates.addAll(defaultSmsTemplates());
     for (final c in customers) { if(c.smsTemplateId.isEmpty)c.smsTemplateId=templates.first.id; for(final d in c.devices){if(d.smsTemplateId.isEmpty)d.smsTemplateId=templates.first.id;} }
     await _saveCore(dailyBackup: true);
@@ -257,13 +275,14 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) setState(() => loading = false);
   }
 
-  Map<String,dynamic> _fullBackup() => {'version': 2, 'createdAt': DateTime.now().toIso8601String(), 'customers': customers.map((e)=>e.toJson()).toList(), 'templates': templates.map((e)=>e.toJson()).toList(), 'settings': settings.toJson()};
+  Map<String,dynamic> _fullBackup() => {'version': 3, 'createdAt': DateTime.now().toIso8601String(), 'customers': customers.map((e)=>e.toJson()).toList(), 'templates': templates.map((e)=>e.toJson()).toList(), 'settings': settings.toJson(), 'tasks': tasks.map((e)=>e.toJson()).toList()};
 
   Future<void> _saveCore({bool dailyBackup = true}) async {
     final p = await SharedPreferences.getInstance();
     await p.setString(_storageKey, jsonEncode(customers.map((e)=>e.toJson()).toList()));
     await p.setString(_templatesKey, jsonEncode(templates.map((e)=>e.toJson()).toList()));
     await p.setString(_settingsKey, jsonEncode(settings.toJson()));
+    await p.setString(_tasksKey, jsonEncode(tasks.map((e)=>e.toJson()).toList()));
     if (dailyBackup && settings.autoBackup) {
       final key = DateTime.now().toIso8601String().substring(0,10);
       if (p.getString(_dailyBackupKey) != key) {
@@ -324,8 +343,19 @@ class _HomeScreenState extends State<HomeScreen> {
     await showDialog(context:context,builder:(d)=>AlertDialog(title:const Text('بکاپ و بازیابی'),content:const Text('بکاپ دستی در پوشه Download/ModiriatService ذخیره می‌شود. بکاپ خودکار نیز روزی یک‌بار هنگام باز شدن برنامه انجام می‌شود.'),actions:[
       TextButton(onPressed:()async{await Clipboard.setData(ClipboardData(text:jsonEncode(_fullBackup())));if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('بکاپ در کلیپ‌بورد کپی شد')));},child:const Text('کپی بکاپ')),
       TextButton(onPressed:()async{try{final ok=await _channel.invokeMethod<bool>('saveBackup',{'json':jsonEncode(_fullBackup()),'fileName':'modiriat-service-manual-${DateTime.now().millisecondsSinceEpoch}.json'});if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(ok==true?'بکاپ در Downloads ذخیره شد':'ذخیره بکاپ انجام نشد')));}catch(_){ }},child:const Text('ذخیره در Downloads')),
-      FilledButton(onPressed:()async{final clip=await Clipboard.getData('text/plain');try{final j=jsonDecode(clip?.text??'');final map=Map<String,dynamic>.from(j);customers..clear()..addAll((map['customers'] as List).map((e)=>Customer.fromJson(Map<String,dynamic>.from(e))));if(map['templates'] is List){templates..clear()..addAll((map['templates'] as List).map((e)=>SmsTemplate.fromJson(Map<String,dynamic>.from(e))));}if(map['settings'] is Map)settings=AppSettings.fromJson(Map<String,dynamic>.from(map['settings']));await _saveCore();await _scheduleAll();if(d.mounted)Navigator.pop(d);}catch(_){if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('بکاپ معتبر نیست')));}},child:const Text('بازیابی از کلیپ‌بورد'))
+      FilledButton(onPressed:()async{final clip=await Clipboard.getData('text/plain');try{final j=jsonDecode(clip?.text??'');final map=Map<String,dynamic>.from(j);customers..clear()..addAll((map['customers'] as List).map((e)=>Customer.fromJson(Map<String,dynamic>.from(e))));if(map['templates'] is List){templates..clear()..addAll((map['templates'] as List).map((e)=>SmsTemplate.fromJson(Map<String,dynamic>.from(e))));}if(map['settings'] is Map)settings=AppSettings.fromJson(Map<String,dynamic>.from(map['settings']));if(map['tasks'] is List){tasks..clear()..addAll((map['tasks'] as List).map((e)=>DailyTask.fromJson(Map<String,dynamic>.from(e))));}await _saveCore();await _scheduleAll();if(d.mounted)Navigator.pop(d);}catch(_){if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('بکاپ معتبر نیست')));}},child:const Text('بازیابی از کلیپ‌بورد'))
     ]));
+  }
+
+  int get _dueWorkCount {
+    var count=tasks.where((t)=>!t.done&&t.date.isNotEmpty&&t.date.compareTo(today())<=0).length;
+    for(final c in customers){for(final d in c.devices){if(d.nextServiceDate.isNotEmpty&&d.nextServiceDate.compareTo(today())<=0)count++;}}
+    return count;
+  }
+
+  Future<void> _dailyTasks() async {
+    await Navigator.push(context,MaterialPageRoute(builder:(_)=>DailyTasksScreen(customers:customers,tasks:tasks,onSave:_saveCore)));
+    if(mounted)setState((){});
   }
 
   Future<void> _settings() async { await Navigator.push(context,MaterialPageRoute(builder:(_)=>SettingsScreen(settings:settings,templates:templates,onSave:()async{await _saveCore();await _scheduleAll();}))); if(mounted)setState((){}); }
@@ -335,11 +365,66 @@ class _HomeScreenState extends State<HomeScreen> {
     floatingActionButton:FloatingActionButton.extended(onPressed:()=>_customerForm(),icon:const Icon(Icons.person_add_alt_1),label:const Text('مشتری جدید')),
     body:loading?const Center(child:CircularProgressIndicator()):Column(children:[
       Container(margin:const EdgeInsets.fromLTRB(16,8,16,12),padding:const EdgeInsets.all(16),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF0F766E),Color(0xFF115E59)]),borderRadius:BorderRadius.circular(22)),child:Row(children:[Expanded(child:_stat('مشتری',customers.length.toString())),Expanded(child:_stat('طلب کل',money(customers.fold(0.0,(s,c)=>s+(c.balance>0?c.balance:0)))))])),
+      Padding(padding:const EdgeInsets.fromLTRB(16,0,16,10),child:FilledButton.tonalIcon(onPressed:_dailyTasks,icon:const Icon(Icons.event_note_outlined),label:Text(_dueWorkCount>0?'کارهای روزانه • $_dueWorkCount مورد نیاز به پیگیری':'کارهای روزانه'))),
       Padding(padding:const EdgeInsets.symmetric(horizontal:16),child:TextField(controller:search,onChanged:(_)=>setState((){}),decoration:const InputDecoration(prefixIcon:Icon(Icons.search),hintText:'جستجو نام، شماره، دستگاه یا آدرس...'))),const SizedBox(height:10),
       Expanded(child:filtered.isEmpty?const Center(child:Text('هنوز مشتری ثبت نشده')):ListView.separated(padding:const EdgeInsets.fromLTRB(16,0,16,100),itemCount:filtered.length,separatorBuilder:(_,__)=>const SizedBox(height:10),itemBuilder:(ctx,i){final c=filtered[i];return Card(child:ListTile(contentPadding:const EdgeInsets.all(14),leading:CircleAvatar(child:Text(c.name.isEmpty?'?':c.name.substring(0,1))),title:Text(c.name,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text([if(c.phone.isNotEmpty)c.phone,'تعداد دستگاه: ${c.devices.length}',if(nearestService(c).isNotEmpty)'نزدیک‌ترین سرویس: ${nearestService(c)}','مانده: ${money(c.balance)}'].join('\n')),trailing:const Icon(Icons.chevron_left),onTap:()async{await Navigator.push(context,MaterialPageRoute(builder:(_)=>CustomerScreen(customer:c,templates:templates,settings:settings,onSave:_saveCore,onSchedule:_schedule,onEditCustomer:()=>_customerForm(customer:c))));if(mounted)setState((){});}));}))
     ]));
 
   Widget _stat(String a,String b)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(a,style:const TextStyle(color:Colors.white70)),const SizedBox(height:4),Text(b,style:const TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:18))]);
+}
+
+
+class DailyTasksScreen extends StatefulWidget{
+  const DailyTasksScreen({super.key,required this.customers,required this.tasks,required this.onSave});
+  final List<Customer> customers; final List<DailyTask> tasks; final Future<void> Function({bool dailyBackup}) onSave;
+  @override State<DailyTasksScreen> createState()=>_DailyTasksScreenState();
+}
+class _DailyTasksScreenState extends State<DailyTasksScreen>{
+  Future<void> _taskForm({DailyTask? task})async{
+    final title=TextEditingController(text:task?.title??''),date=TextEditingController(text:task?.date??today()),notes=TextEditingController(text:task?.notes??'');
+    final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:Text(task==null?'کار جدید':'ویرایش کار'),content:Column(mainAxisSize:MainAxisSize.min,children:[
+      _field(title,'عنوان کار'),const SizedBox(height:8),_field(date,'تاریخ انجام'),const SizedBox(height:8),_field(notes,'توضیحات',lines:3)
+    ]),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]));
+    if(ok!=true||title.text.trim().isEmpty)return;
+    final t=task??DailyTask(id:newId(),title:title.text.trim(),date:date.text.trim());
+    t..title=title.text.trim()..date=date.text.trim()..notes=notes.text.trim();
+    if(task==null)widget.tasks.add(t);await widget.onSave();if(mounted)setState((){});
+  }
+  List<Map<String,dynamic>> get _items{
+    final out=<Map<String,dynamic>>[];
+    for(final t in widget.tasks){out.add({'date':t.date,'type':'task','task':t});}
+    for(final c in widget.customers){for(final d in c.devices){if(d.nextServiceDate.isNotEmpty)out.add({'date':d.nextServiceDate,'type':'service','customer':c,'device':d});}}
+    out.sort((a,b)=>(a['date'] as String).compareTo(b['date'] as String));
+    return out;
+  }
+  String _state(String date,bool done){if(done)return'انجام‌شده';if(date.compareTo(today())<0)return'عقب‌افتاده';if(date==today())return'امروز';return'آینده';}
+  @override Widget build(BuildContext context)=>Scaffold(
+    appBar:AppBar(title:const Text('کارهای روزانه')),
+    floatingActionButton:FloatingActionButton.extended(onPressed:()=>_taskForm(),icon:const Icon(Icons.add_task),label:const Text('کار جدید')),
+    body:ListView(padding:const EdgeInsets.fromLTRB(16,12,16,100),children:[
+      Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(16)),child:const Text('سرویس‌های دوره‌ای مشتری‌ها خودکار اینجا نمایش داده می‌شوند. کارهای هماهنگی، خرید، تماس و پیگیری را هم می‌توانید دستی اضافه کنید.')),
+      const SizedBox(height:12),
+      ..._items.map((m){
+        final isTask=m['type']=='task';
+        if(isTask){
+          final t=m['task'] as DailyTask;
+          return Card(margin:const EdgeInsets.only(bottom:8),child:ListTile(
+            leading:Checkbox(value:t.done,onChanged:(v)async{t.done=v==true;await widget.onSave();if(mounted)setState((){});}),
+            title:Text(t.title,style:TextStyle(fontWeight:FontWeight.w700,decoration:t.done?TextDecoration.lineThrough:null)),
+            subtitle:Text('${t.date} • ${_state(t.date,t.done)}${t.notes.isEmpty?'':'\n${t.notes}'}'),
+            trailing:IconButton(onPressed:()=>_taskForm(task:t),icon:const Icon(Icons.edit_outlined))
+          ));
+        }
+        final c=m['customer'] as Customer,d=m['device'] as DeviceRecord,date=m['date'] as String;
+        return Card(margin:const EdgeInsets.only(bottom:8),child:ListTile(
+          leading:const CircleAvatar(child:Icon(Icons.build_outlined)),
+          title:Text('سرویس دوره‌ای • ${c.name}',style:const TextStyle(fontWeight:FontWeight.w700)),
+          subtitle:Text('${d.name}\n$date • ${_state(date,false)}'),
+          isThreeLine:true
+        ));
+      })
+    ])
+  );
 }
 
 class CustomerScreen extends StatefulWidget {
@@ -422,13 +507,22 @@ class _CustomerScreenState extends State<CustomerScreen>{
     if(c.devices.isEmpty){if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('اول یک دستگاه ثبت کنید')));return;}
     final desc=TextEditingController(text:record?.description??''),amount=TextEditingController(text:record==null?'':groupDigits(record.amount.toStringAsFixed(0))),date=TextEditingController(text:record?.date??today()),next=TextEditingController(text:record?.nextDate??'');
     var deviceId=(record?.deviceId.isNotEmpty==true)?record!.deviceId:c.devices.first.id;if(!c.devices.any((d)=>d.id==deviceId))deviceId=c.devices.first.id;if(record==null)next.text=_deviceById(deviceId)?.nextServiceDate??'';
+    var sendCompletion=false;
     final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(title:Text(record==null?'ثبت سرویس':'ویرایش سرویس'),content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
       DropdownButtonFormField<String>(value:deviceId,decoration:const InputDecoration(labelText:'دستگاه'),items:c.devices.map((e)=>DropdownMenuItem(value:e.id,child:Text(e.name))).toList(),onChanged:(v){if(v!=null)setD((){deviceId=v;if(record==null)next.text=_deviceById(v)?.nextServiceDate??'';});}),const SizedBox(height:8),
-      _field(desc,'شرح سرویس'),const SizedBox(height:8),TextField(controller:amount,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'مبلغ (تومان)',hintText:'مثلاً 1,250,000')),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(next,'سرویس بعدی')
+      _field(desc,'شرح سرویس'),const SizedBox(height:8),TextField(controller:amount,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'مبلغ (تومان)',hintText:'مثلاً 1,250,000')),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(next,'سرویس بعدی'),const SizedBox(height:8),SwitchListTile(contentPadding:EdgeInsets.zero,value:sendCompletion,onChanged:(v)=>setD(()=>sendCompletion=v),title:const Text('ارسال پیام پایان کار به مشتری'),subtitle:const Text('تشکر + خلاصه کار + تاریخ سرویس بعدی'))
     ])),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))])));
     if(ok!=true||desc.text.trim().isEmpty)return;final r=record??ServiceRecord(id:newId(),date:'',description:'',amount:0);
     r..description=desc.text.trim()..amount=double.tryParse(amount.text.replaceAll(',',''))??0..date=date.text.trim()..nextDate=next.text.trim()..deviceId=deviceId;if(record==null)c.services.insert(0,r);
     final dev=_deviceById(deviceId);if(dev!=null&&next.text.trim().isNotEmpty)dev.nextServiceDate=next.text.trim();await _save();await widget.onSchedule(c);
+    if(sendCompletion&&dev!=null&&c.phone.trim().isNotEmpty){
+      var permission=await Permission.sms.status;
+      if(!permission.isGranted)permission=await Permission.sms.request();
+      if(permission.isGranted){
+        final msg=renderCompletionSms(widget.settings.completionSmsTemplate,c,dev,desc.text.trim(),next.text.trim());
+        try{await _channel.invokeMethod('sendSmsNow',{'phone':c.phone.trim(),'message':msg});if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('پیام پایان کار برای مشتری ارسال شد')));}catch(_){}
+      }else if(mounted){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('برای ارسال پیام پایان کار، مجوز پیامک لازم است')));}
+    }
   }
 
   Future<void> _paymentForm({PaymentRecord? record}) async {
@@ -517,11 +611,13 @@ class _CustomerScreenState extends State<CustomerScreen>{
         pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.start,children:[pw.Text(i.sellerName.isEmpty?'کارنوپلاس':i.sellerName,style:pw.TextStyle(fontSize:22,fontWeight:pw.FontWeight.bold)),pw.Text([i.sellerPhone1,i.sellerPhone2].where((e)=>e.isNotEmpty).join(' - '))]),
         pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.end,children:[pw.Text(i.typeLabel,style:pw.TextStyle(fontSize:18,fontWeight:pw.FontWeight.bold)),if(i.documentNumber.isNotEmpty)pw.Text('شماره: ${i.documentNumber}'),pw.Text('تاریخ: ${i.date}'),if(i.isProforma&&i.validUntil.isNotEmpty)pw.Text('اعتبار تا: ${i.validUntil}')])
       ])),
-      pw.SizedBox(height:14),pw.Row(crossAxisAlignment:pw.CrossAxisAlignment.start,children:[
-        pw.Expanded(child:pw.Container(padding:const pw.EdgeInsets.all(12),decoration:pw.BoxDecoration(border:pw.Border.all(color:PdfColors.grey400),borderRadius:pw.BorderRadius.circular(6)),child:pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.stretch,children:[pw.Text('مشخصات فروشنده',style:pw.TextStyle(fontWeight:pw.FontWeight.bold)),pw.Divider(),pw.Text('نام مجموعه: ${i.sellerName.isEmpty?'کارنوپلاس':i.sellerName}',textAlign:pw.TextAlign.right),if(i.sellerPhone1.isNotEmpty)pw.Text('تلفن ۱: ${i.sellerPhone1}',textAlign:pw.TextAlign.right),if(i.sellerPhone2.isNotEmpty)pw.Text('تلفن ۲: ${i.sellerPhone2}',textAlign:pw.TextAlign.right)]))),
-        pw.SizedBox(width:10),
-        pw.Expanded(child:pw.Container(padding:const pw.EdgeInsets.all(12),decoration:pw.BoxDecoration(border:pw.Border.all(color:PdfColors.grey400),borderRadius:pw.BorderRadius.circular(6)),child:pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.stretch,children:[pw.Text('مشخصات خریدار',style:pw.TextStyle(fontWeight:pw.FontWeight.bold)),pw.Divider(),pw.Text('نام: ${c.name}',textAlign:pw.TextAlign.right),if(c.phone.isNotEmpty)pw.Text('تلفن: ${c.phone}',textAlign:pw.TextAlign.right),if(c.address.isNotEmpty)pw.Text('آدرس: ${c.address}',textAlign:pw.TextAlign.right),if(c.devices.isNotEmpty)pw.Text('دستگاه: ${c.devices.map((e)=>e.name).join('، ')}',textAlign:pw.TextAlign.right)])))
-      ]),
+      pw.SizedBox(height:14),pw.Container(width:double.infinity,padding:const pw.EdgeInsets.all(12),decoration:pw.BoxDecoration(border:pw.Border.all(color:PdfColors.grey400),borderRadius:pw.BorderRadius.circular(6)),child:pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.stretch,children:[
+        pw.Text('مشخصات خریدار',style:pw.TextStyle(fontWeight:pw.FontWeight.bold)),pw.Divider(),
+        pw.Text('نام: ${c.name}',textAlign:pw.TextAlign.right),
+        if(c.phone.isNotEmpty)pw.Text('تلفن: ${c.phone}',textAlign:pw.TextAlign.right),
+        if(c.address.isNotEmpty)pw.Text('آدرس: ${c.address}',textAlign:pw.TextAlign.right),
+        if(c.devices.isNotEmpty)pw.Text('دستگاه: ${c.devices.map((e)=>e.name).join('، ')}',textAlign:pw.TextAlign.right)
+      ])),
       pw.SizedBox(height:14),pw.Text(i.title,style:pw.TextStyle(fontSize:16,fontWeight:pw.FontWeight.bold)),pw.SizedBox(height:8),
       pw.TableHelper.fromTextArray(headers:['مبلغ','فی واحد','تعداد','شرح','ردیف'],data:i.items.asMap().entries.map((e)=>[money(e.value.amount),money(e.value.unitPrice),e.value.quantity.toStringAsFixed(e.value.quantity%1==0?0:1),e.value.description,'${e.key+1}']).toList(),
         columnWidths:{0:const pw.FlexColumnWidth(1.5),1:const pw.FlexColumnWidth(1.4),2:const pw.FlexColumnWidth(.8),3:const pw.FlexColumnWidth(3.1),4:const pw.FlexColumnWidth(.6)},headerDecoration:const pw.BoxDecoration(color:PdfColors.teal50),headerStyle:pw.TextStyle(fontWeight:pw.FontWeight.bold),border:pw.TableBorder.all(color:PdfColors.grey400),cellAlignments:{0:pw.Alignment.centerLeft,1:pw.Alignment.centerLeft,2:pw.Alignment.center,3:pw.Alignment.centerRight,4:pw.Alignment.center},cellPadding:const pw.EdgeInsets.all(7)),
@@ -555,12 +651,13 @@ class SettingsScreen extends StatefulWidget{
   @override State<SettingsScreen> createState()=>_SettingsScreenState();
 }
 class _SettingsScreenState extends State<SettingsScreen>{
-  late TextEditingController seller,p1,p2,card,shaba;late int hour,minute;late bool autoBackup;
-  @override void initState(){super.initState();seller=TextEditingController(text:widget.settings.sellerName);p1=TextEditingController(text:widget.settings.sellerPhone1);p2=TextEditingController(text:widget.settings.sellerPhone2);card=TextEditingController(text:widget.settings.cardNumber);shaba=TextEditingController(text:widget.settings.shaba);hour=widget.settings.smsHour;minute=widget.settings.smsMinute;autoBackup=widget.settings.autoBackup;}
+  late TextEditingController seller,p1,p2,card,shaba,completionSms;late int hour,minute;late bool autoBackup;
+  @override void initState(){super.initState();seller=TextEditingController(text:widget.settings.sellerName);p1=TextEditingController(text:widget.settings.sellerPhone1);p2=TextEditingController(text:widget.settings.sellerPhone2);card=TextEditingController(text:widget.settings.cardNumber);shaba=TextEditingController(text:widget.settings.shaba);completionSms=TextEditingController(text:widget.settings.completionSmsTemplate);hour=widget.settings.smsHour;minute=widget.settings.smsMinute;autoBackup=widget.settings.autoBackup;}
   Future<void> _templateEdit(SmsTemplate t)async{final title=TextEditingController(text:t.title),body=TextEditingController(text:t.body);final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:const Text('ویرایش قالب پیامک'),content:Column(mainAxisSize:MainAxisSize.min,children:[_field(title,'نام قالب'),const SizedBox(height:8),_field(body,'متن پیامک',lines:6,hint:'{نام} {دستگاه} {تاریخ}')]),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]));if(ok==true){t..title=title.text.trim()..body=body.text.trim();await widget.onSave();if(mounted)setState((){});}}
   Future<void> _enableSms()async{final ok=await Permission.sms.request();if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(ok.isGranted?'مجوز پیامک فعال شد':'مجوز پیامک داده نشد')));}
-  Future<void> _save()async{widget.settings..sellerName=seller.text.trim()..sellerPhone1=p1.text.trim()..sellerPhone2=p2.text.trim()..cardNumber=card.text.trim()..shaba=shaba.text.trim()..smsHour=hour..smsMinute=minute..autoBackup=autoBackup;await widget.onSave();if(mounted)Navigator.pop(context);}
+  Future<void> _save()async{widget.settings..sellerName=seller.text.trim()..sellerPhone1=p1.text.trim()..sellerPhone2=p2.text.trim()..cardNumber=card.text.trim()..shaba=shaba.text.trim()..completionSmsTemplate=completionSms.text.trim()..smsHour=hour..smsMinute=minute..autoBackup=autoBackup;await widget.onSave();if(mounted)Navigator.pop(context);}
   @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('تنظیمات')),body:ListView(padding:const EdgeInsets.all(16),children:[const Text('اطلاعات پیش‌فرض فاکتور',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),const SizedBox(height:10),_field(seller,'نام مجموعه'),const SizedBox(height:8),_field(p1,'شماره تماس ۱'),const SizedBox(height:8),_field(p2,'شماره تماس ۲'),const SizedBox(height:8),_field(card,'شماره کارت'),const SizedBox(height:8),_field(shaba,'شماره شبا'),const SizedBox(height:20),
+    const Text('پیامک پایان کار',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),const SizedBox(height:8),_field(completionSms,'متن پیام پایان کار',lines:5,hint:'متغیرها: {نام} {دستگاه} {شرح} {تاریخ}'),const SizedBox(height:20),
     const Text('پیامک یادآوری',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),const SizedBox(height:8),Row(children:[Expanded(child:DropdownButtonFormField<int>(value:hour,decoration:const InputDecoration(labelText:'ساعت'),items:List.generate(24,(i)=>DropdownMenuItem(value:i,child:Text(i.toString().padLeft(2,'0')))),onChanged:(v)=>setState(()=>hour=v??9))),const SizedBox(width:8),Expanded(child:DropdownButtonFormField<int>(value:minute,decoration:const InputDecoration(labelText:'دقیقه'),items:[0,15,30,45].map((i)=>DropdownMenuItem(value:i,child:Text(i.toString().padLeft(2,'0')))).toList(),onChanged:(v)=>setState(()=>minute=v??0)))]),const SizedBox(height:8),OutlinedButton.icon(onPressed:_enableSms,icon:const Icon(Icons.sms),label:const Text('فعال‌سازی مجوز پیامک')),const SizedBox(height:8),...widget.templates.map((t)=>Card(child:ListTile(title:Text(t.title),subtitle:Text(t.body,maxLines:2,overflow:TextOverflow.ellipsis),trailing:IconButton(onPressed:()=>_templateEdit(t),icon:const Icon(Icons.edit_outlined))))),const SizedBox(height:16),SwitchListTile(value:autoBackup,onChanged:(v)=>setState(()=>autoBackup=v),title:const Text('بکاپ خودکار روزانه'),subtitle:const Text('روزی یک‌بار هنگام باز شدن برنامه در Downloads ذخیره می‌شود')),const SizedBox(height:16),FilledButton.icon(onPressed:_save,icon:const Icon(Icons.save_outlined),label:const Text('ذخیره تنظیمات'))]));
 }
 
