@@ -360,6 +360,37 @@ class _HomeScreenState extends State<HomeScreen> {
     return count;
   }
 
+  Future<void> _deleteCustomer(Customer c) async {
+    try{await _channel.invokeMethod('cancelSms',{'id':c.id.hashCode & 0x7fffffff});}catch(_){}
+    for(final d in c.devices){try{await _channel.invokeMethod('cancelSms',{'id':alarmIdFor(c,d)});}catch(_){}}
+    customers.removeWhere((e)=>e.id==c.id);
+    await _saveCore();
+  }
+
+  Future<void> _debtDialog() async {
+    final debtors=customers.where((c)=>c.balance>0).toList()..sort((a,b)=>b.balance.compareTo(a.balance));
+    await showDialog(context:context,builder:(d)=>AlertDialog(
+      title:Text('ریز طلب‌ها • ${money(debtors.fold<double>(0,(s,c)=>s+c.balance))}'),
+      content:SizedBox(width:520,child:debtors.isEmpty
+        ?const Text('در حال حاضر طلب بازی ثبت نشده.')
+        :ListView(shrinkWrap:true,children:debtors.map((c){
+          final open=c.invoices.where((i)=>!i.isProforma&&i.status!='paid').toList();
+          return Card(margin:const EdgeInsets.only(bottom:10),child:Padding(padding:const EdgeInsets.all(12),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+            Text(c.name,style:const TextStyle(fontWeight:FontWeight.w800,fontSize:16)),
+            Text('مانده حساب: ${money(c.balance)}',style:TextStyle(fontWeight:FontWeight.bold,color:Colors.red.shade700)),
+            const SizedBox(height:6),
+            if(open.isEmpty)const Text('فاکتور باز مشخصی ثبت نشده؛ مانده از جمع فاکتورها و پرداخت‌ها محاسبه شده.')
+            else ...open.map((i)=>Padding(padding:const EdgeInsets.symmetric(vertical:3),child:Row(children:[
+              const Icon(Icons.receipt_long_outlined,size:18),const SizedBox(width:6),
+              Expanded(child:Text(i.internalName.trim().isEmpty?'فاکتور ${i.documentNumber}':i.internalName)),
+              Text(money(i.total),style:const TextStyle(fontWeight:FontWeight.w700))
+            ])))
+          ])));
+        }).toList())),
+      actions:[FilledButton(onPressed:()=>Navigator.pop(d),child:const Text('بستن'))]
+    ));
+  }
+
   Future<void> _dailyTasks() async {
     await Navigator.push(context,MaterialPageRoute(builder:(_)=>DailyTasksScreen(customers:customers,tasks:tasks,onSave:_saveCore)));
     if(mounted)setState((){});
@@ -371,10 +402,10 @@ class _HomeScreenState extends State<HomeScreen> {
     appBar:AppBar(title:const Text('کارنوپلاس | مدیریت سرویس',style:TextStyle(fontWeight:FontWeight.w800)),actions:[IconButton(onPressed:_backupDialog,icon:const Icon(Icons.backup_outlined),tooltip:'بکاپ'),IconButton(onPressed:_settings,icon:const Icon(Icons.settings_outlined),tooltip:'تنظیمات')]),
     floatingActionButton:FloatingActionButton.extended(onPressed:()=>_customerForm(),icon:const Icon(Icons.person_add_alt_1),label:const Text('مشتری جدید')),
     body:loading?const Center(child:CircularProgressIndicator()):Column(children:[
-      Container(margin:const EdgeInsets.fromLTRB(16,8,16,12),padding:const EdgeInsets.all(16),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF0F766E),Color(0xFF115E59)]),borderRadius:BorderRadius.circular(22)),child:Row(children:[Expanded(child:_stat('مشتری',customers.length.toString())),Expanded(child:_stat('طلب کل',money(customers.fold(0.0,(s,c)=>s+(c.balance>0?c.balance:0)))))])),
+      Container(margin:const EdgeInsets.fromLTRB(16,8,16,12),padding:const EdgeInsets.all(16),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF0F766E),Color(0xFF115E59)]),borderRadius:BorderRadius.circular(22)),child:Row(children:[Expanded(child:_stat('مشتری',customers.length.toString())),Expanded(child:InkWell(borderRadius:BorderRadius.circular(14),onTap:_debtDialog,child:_stat('طلب کل (برای جزئیات بزن)',money(customers.fold(0.0,(s,c)=>s+(c.balance>0?c.balance:0))))))])),
       Padding(padding:const EdgeInsets.fromLTRB(16,0,16,10),child:FilledButton.tonalIcon(onPressed:_dailyTasks,icon:const Icon(Icons.event_note_outlined),label:Text(_dueWorkCount>0?'کارهای روزانه • $_dueWorkCount مورد نیاز به پیگیری':'کارهای روزانه'))),
       Padding(padding:const EdgeInsets.symmetric(horizontal:16),child:TextField(controller:search,onChanged:(_)=>setState((){}),decoration:const InputDecoration(prefixIcon:Icon(Icons.search),hintText:'جستجو نام، شماره، دستگاه یا آدرس...'))),const SizedBox(height:10),
-      Expanded(child:filtered.isEmpty?const Center(child:Text('هنوز مشتری ثبت نشده')):ListView.separated(padding:const EdgeInsets.fromLTRB(16,0,16,100),itemCount:filtered.length,separatorBuilder:(_,__)=>const SizedBox(height:10),itemBuilder:(ctx,i){final c=filtered[i];return Card(child:ListTile(contentPadding:const EdgeInsets.all(14),leading:CircleAvatar(child:Text(c.name.isEmpty?'?':c.name.substring(0,1))),title:Text(c.name,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text([if(c.phone.isNotEmpty)c.phone,'تعداد دستگاه: ${c.devices.length}',if(nearestService(c).isNotEmpty)'نزدیک‌ترین سرویس: ${nearestService(c)}','مانده: ${money(c.balance)}'].join('\n')),trailing:const Icon(Icons.chevron_left),onTap:()async{await Navigator.push(context,MaterialPageRoute(builder:(_)=>CustomerScreen(customer:c,templates:templates,settings:settings,onSave:_saveCore,onSchedule:_schedule,onEditCustomer:()=>_customerForm(customer:c))));if(mounted)setState((){});}));}))
+      Expanded(child:filtered.isEmpty?const Center(child:Text('هنوز مشتری ثبت نشده')):ListView.separated(padding:const EdgeInsets.fromLTRB(16,0,16,100),itemCount:filtered.length,separatorBuilder:(_,__)=>const SizedBox(height:10),itemBuilder:(ctx,i){final c=filtered[i];return Card(child:ListTile(contentPadding:const EdgeInsets.all(14),leading:CircleAvatar(child:Text(c.name.isEmpty?'?':c.name.substring(0,1))),title:Text(c.name,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text([if(c.phone.isNotEmpty)c.phone,'تعداد دستگاه: ${c.devices.length}',if(nearestService(c).isNotEmpty)'نزدیک‌ترین سرویس: ${nearestService(c)}','مانده: ${money(c.balance)}'].join('\n')),trailing:const Icon(Icons.chevron_left),onTap:()async{await Navigator.push(context,MaterialPageRoute(builder:(_)=>CustomerScreen(customer:c,templates:templates,settings:settings,onSave:_saveCore,onSchedule:_schedule,onEditCustomer:()=>_customerForm(customer:c),onDeleteCustomer:()=>_deleteCustomer(c))));if(mounted)setState((){});}));}))
     ]));
 
   Widget _stat(String a,String b)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(a,style:const TextStyle(color:Colors.white70)),const SizedBox(height:4),Text(b,style:const TextStyle(color:Colors.white,fontWeight:FontWeight.bold,fontSize:18))]);
@@ -387,6 +418,10 @@ class DailyTasksScreen extends StatefulWidget{
   @override State<DailyTasksScreen> createState()=>_DailyTasksScreenState();
 }
 class _DailyTasksScreenState extends State<DailyTasksScreen>{
+  Future<void> _deleteTask(DailyTask t)async{
+    if(!await _confirmDelete(context,'حذف کار','«${t.title}» حذف شود؟'))return;
+    widget.tasks.removeWhere((e)=>e.id==t.id);await widget.onSave();if(mounted)setState((){});
+  }
   Future<void> _taskForm({DailyTask? task})async{
     final title=TextEditingController(text:task?.title??''),date=TextEditingController(text:task?.date??today()),notes=TextEditingController(text:task?.notes??'');
     final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:Text(task==null?'کار جدید':'ویرایش کار'),content:Column(mainAxisSize:MainAxisSize.min,children:[
@@ -419,7 +454,7 @@ class _DailyTasksScreenState extends State<DailyTasksScreen>{
             leading:Checkbox(value:t.done,onChanged:(v)async{t.done=v==true;await widget.onSave();if(mounted)setState((){});}),
             title:Text(t.title,style:TextStyle(fontWeight:FontWeight.w700,decoration:t.done?TextDecoration.lineThrough:null)),
             subtitle:Text('${t.date} • ${_state(t.date,t.done)}${t.notes.isEmpty?'':'\n${t.notes}'}'),
-            trailing:IconButton(onPressed:()=>_taskForm(task:t),icon:const Icon(Icons.edit_outlined))
+            trailing:Wrap(spacing:0,children:[IconButton(onPressed:()=>_taskForm(task:t),icon:const Icon(Icons.edit_outlined)),IconButton(onPressed:()=>_deleteTask(t),icon:const Icon(Icons.delete_outline),tooltip:'حذف')])
           ));
         }
         final c=m['customer'] as Customer,d=m['device'] as DeviceRecord,date=m['date'] as String;
@@ -435,8 +470,8 @@ class _DailyTasksScreenState extends State<DailyTasksScreen>{
 }
 
 class CustomerScreen extends StatefulWidget {
-  const CustomerScreen({super.key,required this.customer,required this.templates,required this.settings,required this.onSave,required this.onSchedule,required this.onEditCustomer});
-  final Customer customer; final List<SmsTemplate> templates; final AppSettings settings; final Future<void> Function({bool dailyBackup}) onSave; final Future<void> Function(Customer) onSchedule; final Future<void> Function() onEditCustomer;
+  const CustomerScreen({super.key,required this.customer,required this.templates,required this.settings,required this.onSave,required this.onSchedule,required this.onEditCustomer,required this.onDeleteCustomer});
+  final Customer customer; final List<SmsTemplate> templates; final AppSettings settings; final Future<void> Function({bool dailyBackup}) onSave; final Future<void> Function(Customer) onSchedule; final Future<void> Function() onEditCustomer; final Future<void> Function() onDeleteCustomer;
   @override State<CustomerScreen> createState()=>_CustomerScreenState();
 }
 class _CustomerScreenState extends State<CustomerScreen>{
@@ -444,6 +479,28 @@ class _CustomerScreenState extends State<CustomerScreen>{
   Future<void> _save()async{await widget.onSave();if(mounted)setState((){});}
 
   DeviceRecord? _deviceById(String id){for(final d in c.devices){if(d.id==id)return d;}return null;}
+
+  Future<void> _deleteCustomer()async{
+    if(!await _confirmDelete(context,'حذف مشتری','مشتری «${c.name}» و تمام فاکتورها، پرداخت‌ها، دستگاه‌ها و سوابق خدماتش حذف شود؟'))return;
+    await widget.onDeleteCustomer();if(mounted)Navigator.pop(context);
+  }
+  Future<void> _deleteDevice(DeviceRecord d)async{
+    if(!await _confirmDelete(context,'حذف دستگاه','دستگاه «${d.name}» حذف شود؟ سوابق خدمات قبلی حذف نمی‌شوند.'))return;
+    try{await _channel.invokeMethod('cancelSms',{'id':alarmIdFor(c,d)});}catch(_){}
+    c.devices.removeWhere((e)=>e.id==d.id);await _save();
+  }
+  Future<void> _deleteInvoice(InvoiceRecord i)async{
+    if(!await _confirmDelete(context,'حذف ${i.typeLabel}','این ${i.typeLabel} حذف شود؟'))return;
+    c.invoices.removeWhere((e)=>e.id==i.id);await _save();
+  }
+  Future<void> _deleteService(ServiceRecord r)async{
+    if(!await _confirmDelete(context,'حذف سابقه سرویس','«${r.description}» حذف شود؟'))return;
+    c.services.removeWhere((e)=>e.id==r.id);await _save();
+  }
+  Future<void> _deletePayment(PaymentRecord r)async{
+    if(!await _confirmDelete(context,'حذف پرداخت','پرداخت ${money(r.amount)} حذف شود؟'))return;
+    c.payments.removeWhere((e)=>e.id==r.id);await _save();
+  }
 
   Future<void> _deviceForm({DeviceRecord? device}) async {
     final name=TextEditingController(text:device?.name??''),next=TextEditingController(text:device?.nextServiceDate??''),notes=TextEditingController(text:device?.notes??'');
@@ -641,12 +698,12 @@ class _CustomerScreenState extends State<CustomerScreen>{
     final Uint8List bytes=await doc.save();final rawName=i.internalName.trim().isEmpty?'${i.isProforma?'پیش‌فاکتور':'فاکتور'}-${i.documentNumber.isEmpty?i.id:i.documentNumber}':i.internalName.trim();final safeName=rawName.replaceAll(RegExp(r'[\\/:*?"<>|]'),' ').replaceAll(RegExp(r'\s+'),' ').trim();await Printing.sharePdf(bytes:bytes,filename:'${safeName.isEmpty?'document':safeName}.pdf');
   }
 
-  @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text(c.name),actions:[IconButton(onPressed:()async{await widget.onEditCustomer();if(mounted)setState((){});},icon:const Icon(Icons.edit_outlined))]),body:ListView(padding:const EdgeInsets.all(16),children:[
+  @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text(c.name),actions:[IconButton(onPressed:()async{await widget.onEditCustomer();if(mounted)setState((){});},icon:const Icon(Icons.edit_outlined)),IconButton(onPressed:_deleteCustomer,icon:const Icon(Icons.delete_outline),tooltip:'حذف مشتری')]),body:ListView(padding:const EdgeInsets.all(16),children:[
     _infoCard(),const SizedBox(height:12),Row(children:[Expanded(child:FilledButton.icon(onPressed:()=>_serviceForm(),icon:const Icon(Icons.build_outlined),label:const Text('ثبت سرویس'))),const SizedBox(width:8),Expanded(child:FilledButton.tonalIcon(onPressed:()=>_paymentForm(),icon:const Icon(Icons.payments_outlined),label:const Text('ثبت پرداخت')))]),const SizedBox(height:8),Row(children:[Expanded(child:FilledButton.tonalIcon(onPressed:()=>_invoiceForm(documentType:'invoice'),icon:const Icon(Icons.receipt_long_outlined),label:const Text('فاکتور جدید'))),const SizedBox(width:8),Expanded(child:FilledButton.tonalIcon(onPressed:()=>_invoiceForm(documentType:'proforma'),icon:const Icon(Icons.request_quote_outlined),label:const Text('پیش‌فاکتور')))]),const SizedBox(height:8),Row(children:[Expanded(child:OutlinedButton.icon(onPressed:_reportDialog,icon:const Icon(Icons.analytics_outlined),label:const Text('گزارش عملکرد'))),const SizedBox(width:8),Expanded(child:OutlinedButton.icon(onPressed:()=>_deviceForm(),icon:const Icon(Icons.add_circle_outline),label:const Text('افزودن دستگاه')))]),const SizedBox(height:20),
-    _section('دستگاه‌های مشتری',c.devices.map((d)=>ListTile(title:Text(d.name),subtitle:Text(d.nextServiceDate.isEmpty?d.notes:'سرویس بعدی: ${d.nextServiceDate}\n${d.notes}'),trailing:Wrap(spacing:0,children:[IconButton(onPressed:()=>_deviceSmsEditor(d),icon:const Icon(Icons.sms_outlined)),IconButton(onPressed:()=>_deviceForm(device:d),icon:const Icon(Icons.edit_outlined))]))).toList()),
-    _section('فاکتورها و پیش‌فاکتورها',c.invoices.map((i)=>ListTile(title:Text(i.internalName.trim().isEmpty?'${i.typeLabel} ${i.documentNumber}':i.internalName,style:const TextStyle(fontWeight:FontWeight.w700)),subtitle:Text('${i.typeLabel}${i.documentNumber.isEmpty?'':' • ${i.documentNumber}'}\n${i.date} • ${money(i.total)} • ${i.statusLabel}'),isThreeLine:true,trailing:Wrap(spacing:0,children:[if(i.isProforma&&i.status!='converted')IconButton(onPressed:()=>_convertProforma(i),icon:const Icon(Icons.transform_outlined),tooltip:'تبدیل به فاکتور'),IconButton(onPressed:()=>_pdf(i),icon:const Icon(Icons.picture_as_pdf_outlined),tooltip:'PDF'),IconButton(onPressed:()=>_invoiceForm(invoice:i),icon:const Icon(Icons.edit_outlined),tooltip:'ویرایش')]))).toList()),
-    _section('سابقه خدمات',c.services.map((r)=>ListTile(title:Text(r.description),subtitle:Text('${_deviceById(r.deviceId)?.name ?? (c.devices.isNotEmpty?c.devices.first.name:'')} • ${r.date} • ${money(r.amount)}${r.nextDate.isEmpty?'':'\nسرویس بعدی: ${r.nextDate}'}'),trailing:IconButton(onPressed:()=>_serviceForm(record:r),icon:const Icon(Icons.edit_outlined)))).toList()),
-    _section('پرداخت‌ها',c.payments.map((r)=>ListTile(title:Text(money(r.amount)),subtitle:Text('${r.date}${r.note.isEmpty?'':' • ${r.note}'}'),trailing:IconButton(onPressed:()=>_paymentForm(record:r),icon:const Icon(Icons.edit_outlined)))).toList()),
+    _section('دستگاه‌های مشتری',c.devices.map((d)=>ListTile(title:Text(d.name),subtitle:Text(d.nextServiceDate.isEmpty?d.notes:'سرویس بعدی: ${d.nextServiceDate}\n${d.notes}'),trailing:Wrap(spacing:0,children:[IconButton(onPressed:()=>_deviceSmsEditor(d),icon:const Icon(Icons.sms_outlined)),IconButton(onPressed:()=>_deviceForm(device:d),icon:const Icon(Icons.edit_outlined)),IconButton(onPressed:()=>_deleteDevice(d),icon:const Icon(Icons.delete_outline),tooltip:'حذف')]))).toList()),
+    _section('فاکتورها و پیش‌فاکتورها',c.invoices.map((i)=>ListTile(title:Text(i.internalName.trim().isEmpty?'${i.typeLabel} ${i.documentNumber}':i.internalName,style:const TextStyle(fontWeight:FontWeight.w700)),subtitle:Text('${i.typeLabel}${i.documentNumber.isEmpty?'':' • ${i.documentNumber}'}\n${i.date} • ${money(i.total)} • ${i.statusLabel}'),isThreeLine:true,trailing:Wrap(spacing:0,children:[if(i.isProforma&&i.status!='converted')IconButton(onPressed:()=>_convertProforma(i),icon:const Icon(Icons.transform_outlined),tooltip:'تبدیل به فاکتور'),IconButton(onPressed:()=>_pdf(i),icon:const Icon(Icons.picture_as_pdf_outlined),tooltip:'PDF'),IconButton(onPressed:()=>_invoiceForm(invoice:i),icon:const Icon(Icons.edit_outlined),tooltip:'ویرایش'),IconButton(onPressed:()=>_deleteInvoice(i),icon:const Icon(Icons.delete_outline),tooltip:'حذف')]))).toList()),
+    _section('سابقه خدمات',c.services.map((r)=>ListTile(title:Text(r.description),subtitle:Text('${_deviceById(r.deviceId)?.name ?? (c.devices.isNotEmpty?c.devices.first.name:'')} • ${r.date} • ${money(r.amount)}${r.nextDate.isEmpty?'':'\nسرویس بعدی: ${r.nextDate}'}'),trailing:Wrap(spacing:0,children:[IconButton(onPressed:()=>_serviceForm(record:r),icon:const Icon(Icons.edit_outlined)),IconButton(onPressed:()=>_deleteService(r),icon:const Icon(Icons.delete_outline),tooltip:'حذف')]))).toList()),
+    _section('پرداخت‌ها',c.payments.map((r)=>ListTile(title:Text(money(r.amount)),subtitle:Text('${r.date}${r.note.isEmpty?'':' • ${r.note}'}'),trailing:Wrap(spacing:0,children:[IconButton(onPressed:()=>_paymentForm(record:r),icon:const Icon(Icons.edit_outlined)),IconButton(onPressed:()=>_deletePayment(r),icon:const Icon(Icons.delete_outline),tooltip:'حذف')]))).toList()),
   ]));
 
   Widget _infoCard()=>Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20)),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Text(c.name,style:const TextStyle(fontSize:22,fontWeight:FontWeight.w800)),const SizedBox(height:8),if(c.phone.isNotEmpty)Text('تلفن: ${c.phone}'),if(c.address.isNotEmpty)Text('آدرس: ${c.address}'),Text('تعداد دستگاه‌ها: ${c.devices.length}'),const Divider(height:24),Text('مانده فاکتورها: ${money(c.balance)}',style:TextStyle(fontWeight:FontWeight.bold,color:c.balance>0?Colors.red.shade700:Colors.green.shade700))]));
@@ -667,5 +724,10 @@ class _SettingsScreenState extends State<SettingsScreen>{
     const Text('پیامک پایان کار',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),const SizedBox(height:8),_field(completionSms,'متن پیام پایان کار',lines:5,hint:'متغیرها: {نام} {دستگاه} {شرح} {تاریخ}'),const SizedBox(height:20),
     const Text('پیامک یادآوری',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),const SizedBox(height:8),SwitchListTile(value:smsEnabled,onChanged:(v)=>setState(()=>smsEnabled=v),title:const Text('ارسال خودکار پیامک'),subtitle:Text(smsEnabled?'فعال است؛ پیام‌ها طبق زمان‌بندی ارسال می‌شوند':'متوقف است؛ پیام‌های این بازه بعد از فعال‌سازی ارسال می‌شوند')),const SizedBox(height:8),Row(children:[Expanded(child:DropdownButtonFormField<int>(value:hour,decoration:const InputDecoration(labelText:'ساعت'),items:List.generate(24,(i)=>DropdownMenuItem(value:i,child:Text(i.toString().padLeft(2,'0')))),onChanged:(v)=>setState(()=>hour=v??9))),const SizedBox(width:8),Expanded(child:DropdownButtonFormField<int>(value:minute,decoration:const InputDecoration(labelText:'دقیقه'),items:[0,15,30,45].map((i)=>DropdownMenuItem(value:i,child:Text(i.toString().padLeft(2,'0')))).toList(),onChanged:(v)=>setState(()=>minute=v??0)))]),const SizedBox(height:8),OutlinedButton.icon(onPressed:_enableSms,icon:const Icon(Icons.sms),label:const Text('فعال‌سازی مجوز پیامک')),const SizedBox(height:8),...widget.templates.map((t)=>Card(child:ListTile(title:Text(t.title),subtitle:Text(t.body,maxLines:2,overflow:TextOverflow.ellipsis),trailing:IconButton(onPressed:()=>_templateEdit(t),icon:const Icon(Icons.edit_outlined))))),const SizedBox(height:16),SwitchListTile(value:autoBackup,onChanged:(v)=>setState(()=>autoBackup=v),title:const Text('بکاپ خودکار روزانه'),subtitle:const Text('روزی یک‌بار هنگام باز شدن برنامه در Downloads ذخیره می‌شود')),const SizedBox(height:16),FilledButton.icon(onPressed:_save,icon:const Icon(Icons.save_outlined),label:const Text('ذخیره تنظیمات'))]));
 }
+
+Future<bool> _confirmDelete(BuildContext context,String title,String message) async => (await showDialog<bool>(context:context,builder:(d)=>AlertDialog(
+  title:Text(title),content:Text(message),
+  actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton.tonal(onPressed:()=>Navigator.pop(d,true),child:const Text('حذف'))]
+)))==true;
 
 Widget _field(TextEditingController c,String label,{int lines=1,TextInputType? type,String? hint})=>TextField(controller:c,maxLines:lines,keyboardType:type,decoration:InputDecoration(labelText:label,hintText:hint));
