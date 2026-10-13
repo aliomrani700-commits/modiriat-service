@@ -117,14 +117,15 @@ class PaymentRecord {
 }
 
 class InvoiceItem {
-  InvoiceItem({required this.description, double? amount, this.quantity = 1, double? unitPrice})
+  InvoiceItem({required this.description, double? amount, this.quantity = 1, this.unit = '', double? unitPrice})
       : unitPrice = unitPrice ?? amount ?? 0;
-  String description;
+  String description, unit;
   double quantity, unitPrice;
   double get amount => quantity * unitPrice;
   Map<String, dynamic> toJson() => {
         'description': description,
         'quantity': quantity,
+        'unit': unit,
         'unitPrice': unitPrice,
         'amount': amount,
       };
@@ -132,7 +133,7 @@ class InvoiceItem {
     final legacyAmount = (j['amount'] as num?)?.toDouble() ?? 0;
     final q = (j['quantity'] as num?)?.toDouble() ?? 1;
     final up = (j['unitPrice'] as num?)?.toDouble() ?? (q == 0 ? legacyAmount : legacyAmount / q);
-    return InvoiceItem(description: j['description']?.toString() ?? '', quantity: q == 0 ? 1 : q, unitPrice: up);
+    return InvoiceItem(description: j['description']?.toString() ?? '', quantity: q == 0 ? 1 : q, unit: j['unit']?.toString() ?? '', unitPrice: up);
   }
 }
 
@@ -239,7 +240,9 @@ List<SmsTemplate> defaultSmsTemplates() => [
 
 String renderSms(String body, Customer c) => body.replaceAll('{نام}', c.name).replaceAll('{دستگاه}', c.deviceType).replaceAll('{تاریخ}', c.nextServiceDate);
 String today() { final j = Jalali.now(); return '${j.year}/${j.month.toString().padLeft(2, '0')}/${j.day.toString().padLeft(2, '0')}'; }
-String money(double v) => '${v.round().toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (m) => ',')} تومان';
+String money(double v) => '${(v*10).round().toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (m) => ',')} ریال';
+String rialDigits(double tomanValue)=>groupDigits((tomanValue*10).round().toString());
+double tomanFromRialText(String value)=>(double.tryParse(value.replaceAll(',',''))??0)/10;
 String newId() => DateTime.now().microsecondsSinceEpoch.toString();
 
 String renderDeviceSms(String body,Customer c,DeviceRecord d)=>body.replaceAll('{نام}',c.name).replaceAll('{دستگاه}',d.name).replaceAll('{تاریخ}',d.nextServiceDate);
@@ -569,15 +572,15 @@ class _CustomerScreenState extends State<CustomerScreen>{
 
   Future<void> _serviceForm({ServiceRecord? record}) async {
     if(c.devices.isEmpty){if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('اول یک دستگاه ثبت کنید')));return;}
-    final desc=TextEditingController(text:record?.description??''),amount=TextEditingController(text:record==null?'':groupDigits(record.amount.toStringAsFixed(0))),date=TextEditingController(text:record?.date??today()),next=TextEditingController(text:record?.nextDate??'');
+    final desc=TextEditingController(text:record?.description??''),amount=TextEditingController(text:record==null?'':rialDigits(record.amount)),date=TextEditingController(text:record?.date??today()),next=TextEditingController(text:record?.nextDate??'');
     var deviceId=(record?.deviceId.isNotEmpty==true)?record!.deviceId:c.devices.first.id;if(!c.devices.any((d)=>d.id==deviceId))deviceId=c.devices.first.id;if(record==null)next.text=_deviceById(deviceId)?.nextServiceDate??'';
     var sendCompletion=false;
     final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(title:Text(record==null?'ثبت سرویس':'ویرایش سرویس'),content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
       DropdownButtonFormField<String>(value:deviceId,decoration:const InputDecoration(labelText:'دستگاه'),items:c.devices.map((e)=>DropdownMenuItem(value:e.id,child:Text(e.name))).toList(),onChanged:(v){if(v!=null)setD((){deviceId=v;if(record==null)next.text=_deviceById(v)?.nextServiceDate??'';});}),const SizedBox(height:8),
-      _field(desc,'شرح سرویس'),const SizedBox(height:8),TextField(controller:amount,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'مبلغ (تومان)',hintText:'مثلاً 1,250,000')),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(next,'سرویس بعدی'),const SizedBox(height:8),SwitchListTile(contentPadding:EdgeInsets.zero,value:sendCompletion,onChanged:(v)=>setD(()=>sendCompletion=v),title:const Text('ارسال پیام پایان کار به مشتری'),subtitle:const Text('تشکر + خلاصه کار + تاریخ سرویس بعدی'))
+      _field(desc,'شرح سرویس'),const SizedBox(height:8),TextField(controller:amount,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'مبلغ (ریال)',hintText:'مثلاً 12,500,000')),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(next,'سرویس بعدی'),const SizedBox(height:8),SwitchListTile(contentPadding:EdgeInsets.zero,value:sendCompletion,onChanged:(v)=>setD(()=>sendCompletion=v),title:const Text('ارسال پیام پایان کار به مشتری'),subtitle:const Text('تشکر + خلاصه کار + تاریخ سرویس بعدی'))
     ])),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))])));
     if(ok!=true||desc.text.trim().isEmpty)return;final r=record??ServiceRecord(id:newId(),date:'',description:'',amount:0);
-    r..description=desc.text.trim()..amount=double.tryParse(amount.text.replaceAll(',',''))??0..date=date.text.trim()..nextDate=next.text.trim()..deviceId=deviceId;if(record==null)c.services.insert(0,r);
+    r..description=desc.text.trim()..amount=tomanFromRialText(amount.text)..date=date.text.trim()..nextDate=next.text.trim()..deviceId=deviceId;if(record==null)c.services.insert(0,r);
     final dev=_deviceById(deviceId);if(dev!=null&&next.text.trim().isNotEmpty)dev.nextServiceDate=next.text.trim();await _save();await widget.onSchedule(c);
     if(sendCompletion&&dev!=null&&c.phone.trim().isNotEmpty){
       var permission=await Permission.sms.status;
@@ -590,9 +593,9 @@ class _CustomerScreenState extends State<CustomerScreen>{
   }
 
   Future<void> _paymentForm({PaymentRecord? record}) async {
-    final amount=TextEditingController(text:record==null?'':groupDigits(record.amount.toStringAsFixed(0))),date=TextEditingController(text:record?.date??today()),note=TextEditingController(text:record?.note??'');
-    final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:Text(record==null?'ثبت پرداخت':'ویرایش پرداخت'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:amount,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'مبلغ (تومان)',hintText:'مثلاً 1,250,000')),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(note,'توضیحات')]),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]));
-    if(ok!=true)return;final r=record??PaymentRecord(id:newId(),date:'',amount:0);r..amount=double.tryParse(amount.text.replaceAll(',',''))??0..date=date.text.trim()..note=note.text.trim();if(record==null)c.payments.insert(0,r);await _save();
+    final amount=TextEditingController(text:record==null?'':rialDigits(record.amount)),date=TextEditingController(text:record?.date??today()),note=TextEditingController(text:record?.note??'');
+    final ok=await showDialog<bool>(context:context,builder:(d)=>AlertDialog(title:Text(record==null?'ثبت پرداخت':'ویرایش پرداخت'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:amount,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'مبلغ (ریال)',hintText:'مثلاً 1,250,000')),const SizedBox(height:8),_field(date,'تاریخ'),const SizedBox(height:8),_field(note,'توضیحات')]),actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]));
+    if(ok!=true)return;final r=record??PaymentRecord(id:newId(),date:'',amount:0);r..amount=tomanFromRialText(amount.text)..date=date.text.trim()..note=note.text.trim();if(record==null)c.payments.insert(0,r);await _save();
   }
 
   String _nextDocumentNumber(String type){
@@ -615,9 +618,9 @@ class _CustomerScreenState extends State<CustomerScreen>{
       p2=TextEditingController(text:invoice?.sellerPhone2.isNotEmpty==true?invoice!.sellerPhone2:widget.settings.sellerPhone2),
       card=TextEditingController(text:invoice?.cardNumber.isNotEmpty==true?invoice!.cardNumber:widget.settings.cardNumber),
       shaba=TextEditingController(text:invoice?.shaba.isNotEmpty==true?invoice!.shaba:widget.settings.shaba),
-      discount=TextEditingController(text:invoice==null||invoice.discountValue==0?'':(invoice.discountType=='amount'?groupDigits(invoice.discountValue.toStringAsFixed(0)):invoice.discountValue.toStringAsFixed(0)));
+      discount=TextEditingController(text:invoice==null||invoice.discountValue==0?'':(invoice.discountType=='amount'?rialDigits(invoice.discountValue):invoice.discountValue.toStringAsFixed(0)));
     var discountType=invoice?.discountType??'amount';var status=invoice?.status??'open';
-    final items=(invoice?.items.map((e)=>InvoiceItem(description:e.description,quantity:e.quantity,unitPrice:e.unitPrice)).toList()??[InvoiceItem(description:'',quantity:1,unitPrice:0)]);
+    final items=(invoice?.items.map((e)=>InvoiceItem(description:e.description,quantity:e.quantity,unit:e.unit,unitPrice:e.unitPrice)).toList()??[InvoiceItem(description:'',quantity:1,unit:'',unitPrice:0)]);
     final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(
       title:Text(invoice==null?(type=='proforma'?'پیش‌فاکتور جدید':'فاکتور جدید'):'ویرایش ${invoice.typeLabel}'),
       content:SizedBox(width:560,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
@@ -629,27 +632,28 @@ class _CustomerScreenState extends State<CustomerScreen>{
         ],onChanged:(v){if(v!=null)setD(()=>status=v);}),
         const Divider(height:28),
         ...items.asMap().entries.map((e){
-          final dc=TextEditingController(text:e.value.description),qc=TextEditingController(text:e.value.quantity.toStringAsFixed(e.value.quantity%1==0?0:1)),pc=TextEditingController(text:e.value.unitPrice==0?'':groupDigits(e.value.unitPrice.toStringAsFixed(0)));
+          final dc=TextEditingController(text:e.value.description),qc=TextEditingController(text:e.value.quantity.toStringAsFixed(e.value.quantity%1==0?0:1)),uc=TextEditingController(text:e.value.unit),pc=TextEditingController(text:e.value.unitPrice==0?'':rialDigits(e.value.unitPrice));
           return Padding(padding:const EdgeInsets.only(bottom:10),child:Column(children:[
             Row(children:[Expanded(child:TextField(controller:dc,decoration:const InputDecoration(labelText:'شرح کالا / خدمت'),onChanged:(v)=>e.value.description=v)),IconButton(onPressed:items.length==1?null:()=>setD(()=>items.removeAt(e.key)),icon:const Icon(Icons.delete_outline))]),
             const SizedBox(height:6),Row(children:[
-              SizedBox(width:90,child:TextField(controller:qc,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'تعداد'),onChanged:(v)=>e.value.quantity=double.tryParse(v)??1)),const SizedBox(width:6),
-              Expanded(child:TextField(controller:pc,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'فی واحد (تومان)'),onChanged:(v)=>e.value.unitPrice=double.tryParse(v.replaceAll(',',''))??0)),const SizedBox(width:6),
+              SizedBox(width:75,child:TextField(controller:qc,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'تعداد'),onChanged:(v)=>e.value.quantity=double.tryParse(v)??1)),const SizedBox(width:6),
+              SizedBox(width:90,child:TextField(controller:uc,decoration:const InputDecoration(labelText:'واحد',hintText:'عدد / متر'),onChanged:(v)=>e.value.unit=v)),const SizedBox(width:6),
+              Expanded(child:TextField(controller:pc,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'فی واحد (ریال)'),onChanged:(v)=>e.value.unitPrice=tomanFromRialText(v))),const SizedBox(width:6),
               Expanded(child:InputDecorator(decoration:const InputDecoration(labelText:'مبلغ ردیف'),child:Text(money(e.value.amount),style:const TextStyle(fontWeight:FontWeight.bold))))
             ])
           ]));
         }),
-        Align(alignment:Alignment.centerRight,child:TextButton.icon(onPressed:()=>setD(()=>items.add(InvoiceItem(description:'',quantity:1,unitPrice:0))),icon:const Icon(Icons.add),label:const Text('ردیف جدید'))),
+        Align(alignment:Alignment.centerRight,child:TextButton.icon(onPressed:()=>setD(()=>items.add(InvoiceItem(description:'',quantity:1,unit:'',unitPrice:0))),icon:const Icon(Icons.add),label:const Text('ردیف جدید'))),
         const Divider(height:24),Row(children:[
           Expanded(child:DropdownButtonFormField<String>(value:discountType,decoration:const InputDecoration(labelText:'نوع تخفیف'),items:const [DropdownMenuItem(value:'amount',child:Text('مبلغی')),DropdownMenuItem(value:'percent',child:Text('درصدی'))],onChanged:(v){if(v!=null)setD((){discountType=v;discount.clear();});})),
-          const SizedBox(width:8),Expanded(child:TextField(controller:discount,keyboardType:TextInputType.number,inputFormatters:discountType=='amount'?[ThousandsSeparatorInputFormatter()]:[],decoration:InputDecoration(labelText:discountType=='amount'?'تخفیف (تومان)':'تخفیف (درصد)')))
+          const SizedBox(width:8),Expanded(child:TextField(controller:discount,keyboardType:TextInputType.number,inputFormatters:discountType=='amount'?[ThousandsSeparatorInputFormatter()]:[],decoration:InputDecoration(labelText:discountType=='amount'?'تخفیف (ریال)':'تخفیف (درصد)')))
         ]),
         const SizedBox(height:12),_field(seller,'نام فروشنده / مجموعه'),const SizedBox(height:8),Row(children:[Expanded(child:_field(p1,'شماره تماس ۱')),const SizedBox(width:8),Expanded(child:_field(p2,'شماره تماس ۲'))]),const SizedBox(height:8),
         _field(card,'شماره کارت'),const SizedBox(height:8),_field(shaba,'شماره شبا'),const SizedBox(height:8),_field(notes,'توضیحات',lines:2)
       ]))),
       actions:[TextButton(onPressed:()=>Navigator.pop(d,false),child:const Text('انصراف')),FilledButton(onPressed:()=>Navigator.pop(d,true),child:const Text('ذخیره'))]
     )));
-    if(ok!=true)return;final dv=double.tryParse(discount.text.replaceAll(',',''))??0;
+    if(ok!=true)return;final rawDiscount=double.tryParse(discount.text.replaceAll(',',''))??0;final dv=discountType=='amount'?rawDiscount/10:rawDiscount;
     final inv=invoice??InvoiceRecord(id:newId(),date:'',title:'',items:[],documentType:type);
     inv..date=date.text.trim()..internalName=internalName.text.trim()..title=title.text.trim()..documentNumber=number.text.trim()..validUntil=validUntil.text.trim()..notes=notes.text.trim()
       ..sellerName=seller.text.trim()..sellerPhone1=p1.text.trim()..sellerPhone2=p2.text.trim()..cardNumber=card.text.trim()..shaba=shaba.text.trim()
@@ -664,7 +668,7 @@ class _CustomerScreenState extends State<CustomerScreen>{
     ]));
     if(yes!=true)return;
     final inv=InvoiceRecord(id:newId(),date:today(),title:'فاکتور خدمات',internalName:p.internalName.trim().isEmpty?p.title:p.internalName,documentType:'invoice',documentNumber:_nextDocumentNumber('invoice'),
-      items:p.items.map((e)=>InvoiceItem(description:e.description,quantity:e.quantity,unitPrice:e.unitPrice)).toList(),notes:p.notes,sellerName:p.sellerName,sellerPhone1:p.sellerPhone1,sellerPhone2:p.sellerPhone2,cardNumber:p.cardNumber,shaba:p.shaba,discountType:p.discountType,discountValue:p.discountValue,status:'open');
+      items:p.items.map((e)=>InvoiceItem(description:e.description,quantity:e.quantity,unit:e.unit,unitPrice:e.unitPrice)).toList(),notes:p.notes,sellerName:p.sellerName,sellerPhone1:p.sellerPhone1,sellerPhone2:p.sellerPhone2,cardNumber:p.cardNumber,shaba:p.shaba,discountType:p.discountType,discountValue:p.discountValue,status:'open');
     c.invoices.insert(0,inv);p.status='converted';p.convertedToInvoiceId=inv.id;await _save();
   }
 
@@ -683,8 +687,8 @@ class _CustomerScreenState extends State<CustomerScreen>{
         if(c.devices.isNotEmpty)pw.Text('دستگاه: ${c.devices.map((e)=>e.name).join('، ')}',textAlign:pw.TextAlign.right)
       ])),
       pw.SizedBox(height:14),pw.Text(i.title,style:pw.TextStyle(fontSize:16,fontWeight:pw.FontWeight.bold)),pw.SizedBox(height:8),
-      pw.TableHelper.fromTextArray(headers:['مبلغ','فی واحد','تعداد','شرح','ردیف'],data:i.items.asMap().entries.map((e)=>[money(e.value.amount),money(e.value.unitPrice),e.value.quantity.toStringAsFixed(e.value.quantity%1==0?0:1),e.value.description,'${e.key+1}']).toList(),
-        columnWidths:{0:const pw.FlexColumnWidth(1.5),1:const pw.FlexColumnWidth(1.4),2:const pw.FlexColumnWidth(.8),3:const pw.FlexColumnWidth(3.1),4:const pw.FlexColumnWidth(.6)},headerDecoration:const pw.BoxDecoration(color:PdfColors.teal50),headerStyle:pw.TextStyle(fontWeight:pw.FontWeight.bold),border:pw.TableBorder.all(color:PdfColors.grey400),cellAlignments:{0:pw.Alignment.centerLeft,1:pw.Alignment.centerLeft,2:pw.Alignment.center,3:pw.Alignment.centerRight,4:pw.Alignment.center},cellPadding:const pw.EdgeInsets.all(7)),
+      pw.TableHelper.fromTextArray(headers:['مبلغ','فی واحد','واحد','تعداد','شرح','ردیف'],data:i.items.asMap().entries.map((e)=>[money(e.value.amount),money(e.value.unitPrice),e.value.unit,e.value.quantity.toStringAsFixed(e.value.quantity%1==0?0:1),e.value.description,'${e.key+1}']).toList(),
+        columnWidths:{0:const pw.FlexColumnWidth(1.5),1:const pw.FlexColumnWidth(1.4),2:const pw.FlexColumnWidth(.8),3:const pw.FlexColumnWidth(.7),4:const pw.FlexColumnWidth(2.8),5:const pw.FlexColumnWidth(.55)},headerDecoration:const pw.BoxDecoration(color:PdfColors.teal50),headerStyle:pw.TextStyle(fontWeight:pw.FontWeight.bold),border:pw.TableBorder.all(color:PdfColors.grey400),cellAlignments:{0:pw.Alignment.centerLeft,1:pw.Alignment.centerLeft,2:pw.Alignment.center,3:pw.Alignment.center,4:pw.Alignment.centerRight,5:pw.Alignment.center},cellPadding:const pw.EdgeInsets.all(7)),
       pw.SizedBox(height:12),pw.Align(alignment:pw.Alignment.centerLeft,child:pw.Container(width:250,padding:const pw.EdgeInsets.all(10),decoration:pw.BoxDecoration(border:pw.Border.all(color:PdfColors.grey400),borderRadius:pw.BorderRadius.circular(5)),child:pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.stretch,children:[
         pw.Row(mainAxisAlignment:pw.MainAxisAlignment.spaceBetween,children:[pw.Text('جمع جزء'),pw.Text(money(i.subtotal))]),
         if(i.discountAmount>0)pw.Row(mainAxisAlignment:pw.MainAxisAlignment.spaceBetween,children:[pw.Text('تخفیف${i.discountType=='percent'?' (${i.discountValue.toStringAsFixed(0)}٪)':''}'),pw.Text(money(i.discountAmount))]),
