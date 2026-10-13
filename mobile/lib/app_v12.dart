@@ -623,7 +623,7 @@ class _CustomerScreenState extends State<CustomerScreen>{
     final items=(invoice?.items.map((e)=>InvoiceItem(description:e.description,quantity:e.quantity,unit:e.unit,unitPrice:e.unitPrice)).toList()??[InvoiceItem(description:'',quantity:1,unit:'',unitPrice:0)]);
     final ok=await showDialog<bool>(context:context,builder:(d)=>StatefulBuilder(builder:(d,setD)=>AlertDialog(
       title:Text(invoice==null?(type=='proforma'?'پیش‌فاکتور جدید':'فاکتور جدید'):'ویرایش ${invoice.typeLabel}'),
-      content:SizedBox(width:560,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
+      content:SizedBox(width:560,height:MediaQuery.of(d).size.height*.68,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
         _field(internalName,type=='proforma'?'نام پیش‌فاکتور (فقط داخل برنامه)':'نام فاکتور (فقط داخل برنامه)',hint:'مثلاً پروژه سعادت‌آباد'),const SizedBox(height:8),
         Row(children:[Expanded(child:_field(number,'شماره سند')),const SizedBox(width:8),Expanded(child:_field(date,'تاریخ'))]),const SizedBox(height:8),_field(title,'عنوان داخل سند',hint:type=='proforma'?'پیش‌فاکتور خدمات':'فاکتور خدمات'),
         if(type=='proforma')...[const SizedBox(height:8),_field(validUntil,'اعتبار تا',hint:'مثلاً 1405/09/30')],
@@ -633,15 +633,28 @@ class _CustomerScreenState extends State<CustomerScreen>{
         const Divider(height:28),
         ...items.asMap().entries.map((e){
           final dc=TextEditingController(text:e.value.description),qc=TextEditingController(text:e.value.quantity.toStringAsFixed(e.value.quantity%1==0?0:1)),uc=TextEditingController(text:e.value.unit),pc=TextEditingController(text:e.value.unitPrice==0?'':rialDigits(e.value.unitPrice));
-          return Padding(padding:const EdgeInsets.only(bottom:10),child:Column(children:[
-            Row(children:[Expanded(child:TextField(controller:dc,decoration:const InputDecoration(labelText:'شرح کالا / خدمت'),onChanged:(v)=>e.value.description=v)),IconButton(onPressed:items.length==1?null:()=>setD(()=>items.removeAt(e.key)),icon:const Icon(Icons.delete_outline))]),
-            const SizedBox(height:6),Row(children:[
-              SizedBox(width:75,child:TextField(controller:qc,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'تعداد'),onChanged:(v)=>e.value.quantity=double.tryParse(v)??1)),const SizedBox(width:6),
-              SizedBox(width:90,child:TextField(controller:uc,decoration:const InputDecoration(labelText:'واحد',hintText:'عدد / متر'),onChanged:(v)=>e.value.unit=v)),const SizedBox(width:6),
-              Expanded(child:TextField(controller:pc,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'فی واحد (ریال)'),onChanged:(v)=>e.value.unitPrice=tomanFromRialText(v))),const SizedBox(width:6),
-              Expanded(child:InputDecorator(decoration:const InputDecoration(labelText:'مبلغ ردیف'),child:Text(money(e.value.amount),style:const TextStyle(fontWeight:FontWeight.bold))))
+          return Container(
+            margin:const EdgeInsets.only(bottom:14),
+            padding:const EdgeInsets.all(12),
+            decoration:BoxDecoration(color:Colors.white,border:Border.all(color:Colors.grey.shade300),borderRadius:BorderRadius.circular(16)),
+            child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+              Row(children:[
+                Expanded(child:Text('ردیف ${e.key+1}',style:const TextStyle(fontWeight:FontWeight.w800))),
+                IconButton(onPressed:items.length==1?null:()=>setD(()=>items.removeAt(e.key)),icon:const Icon(Icons.delete_outline),tooltip:'حذف ردیف')
+              ]),
+              TextField(controller:dc,minLines:1,maxLines:3,decoration:const InputDecoration(labelText:'شرح کالا / خدمت',hintText:'شرح را کامل بنویسید'),onChanged:(v)=>e.value.description=v),
+              const SizedBox(height:10),
+              Row(children:[
+                Expanded(child:TextField(controller:qc,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'تعداد',hintText:'مثلاً 2'),onChanged:(v)=>e.value.quantity=double.tryParse(v)??1)),
+                const SizedBox(width:10),
+                Expanded(child:TextField(controller:uc,decoration:const InputDecoration(labelText:'واحد',hintText:'عدد، متر، دستگاه ...'),onChanged:(v)=>e.value.unit=v))
+              ]),
+              const SizedBox(height:10),
+              TextField(controller:pc,keyboardType:TextInputType.number,inputFormatters:[ThousandsSeparatorInputFormatter()],decoration:const InputDecoration(labelText:'فی واحد (ریال)',hintText:'مثلاً 25,000,000'),onChanged:(v)=>e.value.unitPrice=tomanFromRialText(v)),
+              const SizedBox(height:10),
+              InputDecorator(decoration:const InputDecoration(labelText:'مبلغ ردیف'),child:Text(money(e.value.amount),style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800)))
             ])
-          ]));
+          );
         }),
         Align(alignment:Alignment.centerRight,child:TextButton.icon(onPressed:()=>setD(()=>items.add(InvoiceItem(description:'',quantity:1,unit:'',unitPrice:0))),icon:const Icon(Icons.add),label:const Text('ردیف جدید'))),
         const Divider(height:24),Row(children:[
