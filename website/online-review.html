@@ -51,7 +51,7 @@
       <div class="prototype-success" id="success" hidden>
         <b>درخواست ثبت شد ✓</b>
         <p id="successText"></p>
-        <a class="btn soft" href="estimate.html" style="margin-top:10px">ثبت درخواست دیگر</a>
+        <div class="success-actions"><a class="btn primary" id="trackLink" href="request-status.html">پیگیری این درخواست</a><a class="btn soft" href="estimate.html">ثبت درخواست دیگر</a></div>
       </div>
     </form>
   </section>
@@ -104,7 +104,7 @@ requestForm.addEventListener("submit",(e)=>{
  localStorage.setItem("tahvika_requests",JSON.stringify(requests));
  submitBtn.disabled=true;
  success.hidden=false;
- successText.textContent="کد پیگیری نمونه: "+item.id+" — این درخواست الان داخل پنل مدیریتی آزمایشی همین مرورگر قابل مشاهده است.";
+ successText.textContent="کد پیگیری: "+item.id+" — با این کد می‌توانی وضعیت بررسی و برآورد کارشناس را ببینی."; trackLink.href="request-status.html?code="+encodeURIComponent(item.id);
 });
 </script>
 </body>
