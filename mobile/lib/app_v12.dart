@@ -281,16 +281,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override void dispose() { search.dispose(); super.dispose(); }
 
   Future<void> _load() async {
-    final p = await SharedPreferences.getInstance();
-    try { final r = p.getString(_storageKey); if (r != null) customers.addAll((jsonDecode(r) as List).map((e) => Customer.fromJson(Map<String,dynamic>.from(e)))); } catch (_) {}
-    try { final r = p.getString(_templatesKey); if (r != null) templates.addAll((jsonDecode(r) as List).map((e) => SmsTemplate.fromJson(Map<String,dynamic>.from(e)))); } catch (_) {}
-    try { final r = p.getString(_settingsKey); if (r != null) settings = AppSettings.fromJson(Map<String,dynamic>.from(jsonDecode(r))); } catch (_) {}
-    try { final r = p.getString(_tasksKey); if (r != null) tasks.addAll((jsonDecode(r) as List).map((e)=>DailyTask.fromJson(Map<String,dynamic>.from(e)))); } catch (_) {}
-    if (templates.isEmpty) templates.addAll(defaultSmsTemplates());
-    for (final c in customers) { if(c.smsTemplateId.isEmpty)c.smsTemplateId=templates.first.id; for(final d in c.devices){if(d.smsTemplateId.isEmpty)d.smsTemplateId=templates.first.id;} }
-    await _saveCore(dailyBackup: true);
-    await _scheduleAll();
-    if (mounted) setState(() => loading = false);
+    try {
+      final p = await SharedPreferences.getInstance();
+      try { final r = p.getString(_storageKey); if (r != null) customers.addAll((jsonDecode(r) as List).map((e) => Customer.fromJson(Map<String,dynamic>.from(e)))); } catch (_) {}
+      try { final r = p.getString(_templatesKey); if (r != null) templates.addAll((jsonDecode(r) as List).map((e) => SmsTemplate.fromJson(Map<String,dynamic>.from(e)))); } catch (_) {}
+      try { final r = p.getString(_settingsKey); if (r != null) settings = AppSettings.fromJson(Map<String,dynamic>.from(jsonDecode(r))); } catch (_) {}
+      try { final r = p.getString(_tasksKey); if (r != null) tasks.addAll((jsonDecode(r) as List).map((e)=>DailyTask.fromJson(Map<String,dynamic>.from(e)))); } catch (_) {}
+      if (templates.isEmpty) templates.addAll(defaultSmsTemplates());
+      for (final c in customers) { if(c.smsTemplateId.isEmpty)c.smsTemplateId=templates.first.id; for(final d in c.devices){if(d.smsTemplateId.isEmpty)d.smsTemplateId=templates.first.id;} }
+      await _saveCore(dailyBackup:false);
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+    Future(() async {
+      try { await _scheduleAll().timeout(const Duration(seconds:8)); } catch (_) {}
+      try { await _saveCore(dailyBackup:true).timeout(const Duration(seconds:8)); } catch (_) {}
+    });
   }
 
   Map<String,dynamic> _fullBackup() => {'version': 3, 'createdAt': DateTime.now().toIso8601String(), 'customers': customers.map((e)=>e.toJson()).toList(), 'templates': templates.map((e)=>e.toJson()).toList(), 'settings': settings.toJson(), 'tasks': tasks.map((e)=>e.toJson()).toList()};
@@ -322,10 +328,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if(!settings.smsEnabled||c.phone.trim().isEmpty||d.nextServiceDate.trim().isEmpty)return;
     final when=parseServiceDate(d.nextServiceDate,settings);
     if(when==null||when.isBefore(DateTime.now())||!(await Permission.sms.status).isGranted)return;
-    try{await _channel.invokeMethod('scheduleSms',{'id':alarmIdFor(c,d),'phone':c.phone.trim(),'message':smsForDevice(c,d),'timeMillis':when.millisecondsSinceEpoch});}catch(_){}
+    try{await _channel.invokeMethod('scheduleSms',{'id':alarmIdFor(c,d),'phone':c.phone.trim(),'message':smsForDevice(c,d),'timeMillis':when.millisecondsSinceEpoch}).timeout(const Duration(seconds:3));}catch(_){}
   }
   Future<void> _schedule(Customer c) async {
-    try{await _channel.invokeMethod('cancelSms',{'id':c.id.hashCode & 0x7fffffff});}catch(_){}
+    try{await _channel.invokeMethod('cancelSms',{'id':c.id.hashCode & 0x7fffffff}).timeout(const Duration(seconds:3));}catch(_){}
     for(final d in c.devices){await _scheduleDevice(c,d);}
   }
   Future<void> _scheduleAll() async {for(final c in customers){await _schedule(c);}}
