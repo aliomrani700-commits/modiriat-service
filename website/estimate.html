@@ -56,9 +56,19 @@
           <p id="note">—</p>
         </div>
 
+        <div class="estimate-confidence">
+          <div><span>دقت برآورد</span><b id="confidenceText">اولیه</b></div>
+          <div class="confidence-track"><i id="confidenceBar"></i></div>
+        </div>
+
+        <div class="refine-box" id="refineBox" hidden>
+          <div><small>اختیاری — برای دقیق‌تر شدن</small><h3 id="refineQuestion">یک سؤال کوتاه</h3></div>
+          <div class="refine-actions"><button class="btn primary" id="refineYes">بله</button><button class="btn soft" id="refineNo">خیر</button></div>
+        </div>
+
         <div class="result-actions">
           <a class="btn primary big" id="reviewLink" href="online-review.html">ارسال عکس / ویدئو برای بررسی دقیق‌تر</a>
-          <a class="btn soft big" href="online-review.html?mode=dispatch">درخواست اعزام کارشناس</a>
+          <a class="btn soft big" id="dispatchLink" href="online-review.html?mode=dispatch">درخواست اعزام کارشناس</a>
         </div>
 
         <div class="expert-options">
@@ -85,25 +95,25 @@
 <script>
 const flows={
 pump:{title:"مشکل پمپ و آبرسانی کدام است؟",symptoms:[
-{label:"فشار آب کم شده",diagnosis:"احتمال ایراد در پمپ، منبع تحت فشار یا تنظیم فشار",price:"نمونه: حدود ۱.۵ تا ۴ میلیون تومان",note:"اگر پمپ روشن است ولی فشار کم است، بررسی منبع، تنظیمات و مسیر آب لازم است."},
-{label:"پمپ مدام قطع و وصل می‌شود",diagnosis:"احتمال مشکل منبع تحت فشار، تیوپ یا کلید فشار",price:"نمونه: حدود ۱ تا ۳.۵ میلیون تومان",note:"بسته به سالم بودن منبع و قطعات کنترلی، هزینه متفاوت است."},
+{label:"فشار آب کم شده",diagnosis:"احتمال ایراد در پمپ، منبع تحت فشار یا تنظیم فشار",price:"نمونه: حدود ۱.۵ تا ۴ میلیون تومان",note:"اگر پمپ روشن است ولی فشار کم است، بررسی منبع، تنظیمات و مسیر آب لازم است.",refine:{q:"پمپ روشن می‌شود ولی فقط فشار خروجی کم است؟",yes:{diagnosis:"احتمال تنظیم فشار، منبع تحت فشار یا گرفتگی مسیر",price:"نمونه دقیق‌تر: حدود ۱.۵ تا ۳ میلیون تومان",note:"اگر صدای غیرعادی و خاموشی ندارید، ابتدا تنظیمات فشار و مسیر آب بررسی می‌شود."},no:{diagnosis:"احتمال ایراد خود پمپ یا بخش کنترلی بیشتر است",price:"نمونه دقیق‌تر: حدود ۲ تا ۴.۵ میلیون تومان",note:"روشن نشدن، صدای غیرعادی یا نوسان شدید احتمال نیاز به تعمیر تخصصی را بیشتر می‌کند."}}},
+{label:"پمپ مدام قطع و وصل می‌شود",diagnosis:"احتمال مشکل منبع تحت فشار، تیوپ یا کلید فشار",price:"نمونه: حدود ۱ تا ۳.۵ میلیون تومان",note:"بسته به سالم بودن منبع و قطعات کنترلی، هزینه متفاوت است.",refine:{q:"قطع و وصل شدن خیلی سریع و در فاصله چند ثانیه اتفاق می‌افتد؟",yes:{diagnosis:"احتمال مشکل منبع تحت فشار یا تیوپ بیشتر است",price:"نمونه دقیق‌تر: حدود ۱ تا ۲.۸ میلیون تومان",note:"قطع و وصل سریع معمولاً بررسی فشار باد، تیوپ و عملکرد منبع را در اولویت قرار می‌دهد."},no:{diagnosis:"کلید فشار، نشتی یا تنظیمات سیستم هم باید بررسی شود",price:"نمونه دقیق‌تر: حدود ۱.۵ تا ۳.۵ میلیون تومان",note:"فاصله زمانی بیشتر بین قطع و وصل می‌تواند علت‌های دیگری هم داشته باشد."}}},
 {label:"پمپ صدای غیرعادی دارد",diagnosis:"احتمال بلبرینگ، سیل مکانیکی یا ایراد مکانیکی پمپ",price:"نمونه: حدود ۲ تا ۵ میلیون تومان",note:"ارسال ویدئو از صدای پمپ برای تشخیص آنلاین خیلی مفید است."},
 {label:"پمپ روشن نمی‌شود",diagnosis:"احتمال ایراد برق، خازن، کلید فشار یا موتور پمپ",price:"نمونه: حدود ۱ تا ۵ میلیون تومان",note:"مدل پمپ و وضعیت برق ورودی برای تشخیص مهم است."}
 ]},
 cooling:{title:"مشکل کولر گازی یا داکت اسپلیت کدام است؟",symptoms:[
-{label:"باد گرم می‌زند",diagnosis:"احتمال کمبود گاز، نشتی، کندانسور یا کمپرسور",price:"نمونه: حدود ۲ تا ۸ میلیون تومان",note:"هزینه به علت اصلی و نیاز یا عدم نیاز به قطعه بستگی دارد."},
+{label:"باد گرم می‌زند",diagnosis:"احتمال کمبود گاز، نشتی، کندانسور یا کمپرسور",price:"نمونه: حدود ۲ تا ۸ میلیون تومان",note:"هزینه به علت اصلی و نیاز یا عدم نیاز به قطعه بستگی دارد.",refine:{q:"یونیت بیرونی روشن است و فن آن کار می‌کند؟",yes:{diagnosis:"احتمال کمبود گاز، نشتی یا افت راندمان بیشتر است",price:"نمونه دقیق‌تر: حدود ۲ تا ۵.۵ میلیون تومان",note:"اگر یونیت بیرونی فعال است، بررسی فشار گاز، نشتی و وضعیت کندانسور منطقی‌تر است."},no:{diagnosis:"احتمال ایراد برق، خازن، برد، فن یا کمپرسور بیشتر است",price:"نمونه دقیق‌تر: حدود ۲.۵ تا ۸ میلیون تومان",note:"روشن نشدن یونیت بیرونی می‌تواند نیاز به بررسی قطعات الکتریکی یا کمپرسور داشته باشد."}}},
 {label:"آبریزش دارد",diagnosis:"احتمال گرفتگی درین، عایق یا یخ‌زدگی پنل",price:"نمونه: حدود ۱ تا ۳ میلیون تومان",note:"در بسیاری از موارد با اصلاح درین و سرویس قابل رفع است."},
 {label:"سرمایش ضعیف است",diagnosis:"احتمال کثیفی، کمبود گاز یا افت راندمان",price:"نمونه: حدود ۱.۵ تا ۶ میلیون تومان",note:"عکس پنل و یونیت خارجی می‌تواند برآورد را دقیق‌تر کند."},
 {label:"اصلاً روشن نمی‌شود",diagnosis:"احتمال خازن، برق، برد یا موتور فن",price:"نمونه: حدود ۱.۵ تا ۷ میلیون تومان",note:"مدل دستگاه و علائم قبل از خاموشی مهم است."}
 ]},
 central:{title:"مشکل فن‌کویل یا سیستم مرکزی کدام است؟",symptoms:[
-{label:"فن‌کویل آب می‌دهد",diagnosis:"احتمال گرفتگی درین، نشتی کویل یا ایراد سینی",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"عکس محل آبریزش و زیر دستگاه برای بررسی آنلاین مفید است."},
+{label:"فن‌کویل آب می‌دهد",diagnosis:"احتمال گرفتگی درین، نشتی کویل یا ایراد سینی",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"عکس محل آبریزش و زیر دستگاه برای بررسی آنلاین مفید است.",refine:{q:"آبریزش فقط هنگام روشن بودن دستگاه اتفاق می‌افتد؟",yes:{diagnosis:"گرفتگی درین یا مشکل سینی محتمل‌تر است",price:"نمونه دقیق‌تر: حدود ۱ تا ۲.۵ میلیون تومان",note:"اگر فقط هنگام کار آب می‌دهد، مسیر تخلیه و سینی در اولویت بررسی است."},no:{diagnosis:"نشتی کویل یا شیرآلات هم باید بررسی شود",price:"نمونه دقیق‌تر: حدود ۱.۵ تا ۴ میلیون تومان",note:"آبریزش در حالت خاموش می‌تواند نشانه نشتی مدار یا شیرآلات باشد."}}},
 {label:"باد کم یا سرمایش ضعیف است",diagnosis:"احتمال کثیفی کویل، فن، شیر برقی یا مدار",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"برای سیستم مرکزی، وضعیت آب رفت و برگشت هم مهم است."},
 {label:"فن صدای غیرعادی دارد",diagnosis:"احتمال موتور فن، بلبرینگ یا بالانس",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"ویدئوی صدا تشخیص را دقیق‌تر می‌کند."},
 {label:"چیلر یا مدار مرکزی ضعیف شده",diagnosis:"نیاز به بررسی پمپ‌ها، مبدل و مدار سرمایش",price:"نیاز به کارشناسی آنلاین یا حضوری",note:"برای این مورد برآورد بدون اطلاعات فنی بیشتر قابل اتکا نیست."}
 ]},
 heating:{title:"مشکل پکیج یا موتورخانه کدام است؟",symptoms:[
-{label:"فشار سیستم کم می‌شود",diagnosis:"احتمال نشتی، منبع انبساط یا شیر اطمینان",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"محل نشتی و وضعیت منبع انبساط روی هزینه اثر دارد."},
+{label:"فشار سیستم کم می‌شود",diagnosis:"احتمال نشتی، منبع انبساط یا شیر اطمینان",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"محل نشتی و وضعیت منبع انبساط روی هزینه اثر دارد.",refine:{q:"نشتی یا چکه آب جایی از سیستم دیده می‌شود؟",yes:{diagnosis:"نشتی قابل مشاهده یا خرابی شیر و اتصال محتمل‌تر است",price:"نمونه دقیق‌تر: حدود ۱ تا ۳ میلیون تومان",note:"وجود نشتی واضح مسیر تشخیص را کوتاه‌تر می‌کند، اما محل دقیق و دسترسی روی هزینه اثر دارد."},no:{diagnosis:"منبع انبساط، شیر اطمینان یا نشتی پنهان باید بررسی شود",price:"نمونه دقیق‌تر: حدود ۱.۵ تا ۴ میلیون تومان",note:"افت فشار بدون نشتی واضح معمولاً نیاز به بررسی فنی دقیق‌تری دارد."}}},
 {label:"گرمایش ضعیف است",diagnosis:"احتمال هوا، رسوب، پمپ یا تنظیم نبودن مدار",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"در ساختمان بزرگ، وضعیت پمپ‌ها و بالانس مدار هم بررسی می‌شود."},
 {label:"ارور یا خاموشی دارد",diagnosis:"احتمال سنسور، فن، پرشر یا برد",price:"نمونه: حدود ۱.۵ تا ۸ میلیون تومان",note:"عکس کد خطا تشخیص آنلاین را خیلی دقیق‌تر می‌کند."},
 {label:"صدای غیرعادی دارد",diagnosis:"احتمال پمپ، فن یا رسوب مدار",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"ویدئوی صدا برای بررسی آنلاین مفید است."}
@@ -115,28 +125,29 @@ floor:{title:"مشکل گرمایش از کف یا رادیاتور کدام ا�
 {label:"نشتی در کلکتور یا شیرها دارم",diagnosis:"احتمال خرابی شیر، اورینگ یا اتصال",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"عکس واضح محل نشتی برای برآورد لازم است."}
 ]},
 plumbing:{title:"مشکل لوله‌کشی کدام است؟",symptoms:[
-{label:"نشتی مشخص دارم",diagnosis:"احتمال خرابی اتصال، شیر یا بخش موضعی لوله",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"دسترسی به محل نشتی و نیاز به تخریب روی قیمت اثر مستقیم دارد."},
+{label:"نشتی مشخص دارم",diagnosis:"احتمال خرابی اتصال، شیر یا بخش موضعی لوله",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"دسترسی به محل نشتی و نیاز به تخریب روی قیمت اثر مستقیم دارد.",refine:{q:"محل نشتی بدون تخریب در دسترس است؟",yes:{diagnosis:"احتمال تعمیر موضعی اتصال یا شیر",price:"نمونه دقیق‌تر: حدود ۱ تا ۲.۵ میلیون تومان",note:"دسترسی مستقیم معمولاً زمان و هزینه تعمیر را کمتر می‌کند."},no:{diagnosis:"احتمال نیاز به نشتی‌یابی و باز کردن مسیر",price:"نیاز به کارشناسی دقیق‌تر",note:"اگر نشتی داخل دیوار، کف یا رایزر باشد، بدون دیدن شرایط قیمت دقیق قابل اتکا نیست."}}},
 {label:"افت فشار دارم",diagnosis:"احتمال گرفتگی، نشتی پنهان یا ایراد مسیر",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"محل و گستره افت فشار باید مشخص شود."},
 {label:"لوله فرسوده است",diagnosis:"احتمال نیاز به تعویض موضعی یا بازسازی مسیر",price:"نیاز به کارشناسی دقیق‌تر",note:"این مورد بدون دیدن مسیر و متراژ، قیمت قابل اتکا ندارد."},
 {label:"نمی‌دانم مشکل دقیق چیست",diagnosis:"نیاز به کارشناسی آنلاین یا بازدید",price:"پس از بررسی عکس / ویدئو",note:"عکس یا ویدئو بفرست تا قبل از اعزام تشخیص اولیه انجام شود."}
 ]},
 vent:{title:"مشکل تهویه یا هواکش کدام است؟",symptoms:[
 {label:"هواکش صدای زیادی دارد",diagnosis:"احتمال یاتاقان، بالانس فن یا انتقال لرزش",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"ویدئوی صدا و لرزش برای تشخیص مفید است."},
-{label:"مکش ضعیف است",diagnosis:"احتمال گرفتگی، افت کانال، فن ضعیف یا دمپر",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"مسیر کانال و نوع فن روی برآورد اثر دارد."},
+{label:"مکش ضعیف است",diagnosis:"احتمال گرفتگی، افت کانال، فن ضعیف یا دمپر",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"مسیر کانال و نوع فن روی برآورد اثر دارد.",refine:{q:"خود فن روشن است و صدای طبیعی دارد؟",yes:{diagnosis:"احتمال مشکل کانال، دمپر یا گرفتگی مسیر بیشتر است",price:"نمونه دقیق‌تر: حدود ۱.۵ تا ۳.۵ میلیون تومان",note:"وقتی فن طبیعی کار می‌کند، بررسی مسیر هوا و افت کانال اولویت دارد."},no:{diagnosis:"احتمال ایراد موتور فن، خازن یا بخش مکانیکی",price:"نمونه دقیق‌تر: حدود ۲ تا ۵ میلیون تومان",note:"صدای غیرعادی یا عملکرد ضعیف خود فن نیاز به بررسی تجهیزات دارد."}}},
 {label:"فن روشن نمی‌شود",diagnosis:"احتمال برق، خازن، موتور یا کنترل",price:"نمونه: حدود ۱ تا ۵ میلیون تومان",note:"مدل فن و تابلو کنترل در تشخیص مهم است."},
 {label:"نشتی هوا یا مشکل کانال دارم",diagnosis:"احتمال خرابی اتصال، عایق یا دمپر",price:"نیاز به عکس و متراژ",note:"برای قیمت دقیق‌تر، عکس و حدود طول مسیر کانال لازم است."}
 ]},
 pool:{title:"مشکل استخر یا تصفیه آب کدام است؟",symptoms:[
-{label:"گردش آب ضعیف شده",diagnosis:"احتمال فیلتر، پمپ، هوا یا تنظیم شیرها",price:"نمونه: حدود ۱.۵ تا ۶ میلیون تومان",note:"فشار گیج و وضعیت فیلتر به تشخیص کمک می‌کند."},
+{label:"گردش آب ضعیف شده",diagnosis:"احتمال فیلتر، پمپ، هوا یا تنظیم شیرها",price:"نمونه: حدود ۱.۵ تا ۶ میلیون تومان",note:"فشار گیج و وضعیت فیلتر به تشخیص کمک می‌کند.",refine:{q:"بعد از بک‌واش یا تمیزکاری فیلتر هنوز گردش ضعیف است؟",yes:{diagnosis:"پمپ، هوا گرفتن مسیر یا تنظیم شیرها محتمل‌تر است",price:"نمونه دقیق‌تر: حدود ۲ تا ۶ میلیون تومان",note:"اگر فیلتر تمیز است، بررسی پمپ و مسیر گردش اهمیت بیشتری پیدا می‌کند."},no:{diagnosis:"گرفتگی یا اشباع فیلتر محتمل‌تر است",price:"نمونه دقیق‌تر: حدود ۱.۵ تا ۳.۵ میلیون تومان",note:"بهبود بعد از سرویس فیلتر می‌تواند نیاز به تعمیر بزرگ‌تر را کم کند."}}},
 {label:"پمپ تصفیه صدا می‌دهد",diagnosis:"احتمال بلبرینگ، هوا یا ایراد مکانیکی",price:"نمونه: حدود ۲ تا ۶ میلیون تومان",note:"ویدئوی صدا برای بررسی آنلاین مناسب است."},
 {label:"فیلتر خوب کار نمی‌کند",diagnosis:"احتمال گرفتگی، مدیا یا بک‌واش نامناسب",price:"نمونه: حدود ۱ تا ۵ میلیون تومان",note:"نوع فیلتر و فشار قبل و بعد از سرویس مهم است."},
 {label:"دستگاه تصفیه آب افت فشار دارد",diagnosis:"احتمال فیلترها، پمپ یا مخزن",price:"نمونه: حدود ۵۰۰ هزار تا ۳ میلیون تومان",note:"مدل دستگاه و زمان آخرین تعویض فیلتر کمک‌کننده است."}
 ]}
 };
 
-let selectedType=null, selectedSymptom=null;
+let selectedType=null, selectedSymptom=null, currentSymptom=null;
 const step1=document.getElementById("step1"),step2=document.getElementById("step2"),step3=document.getElementById("step3");
 const bar=document.getElementById("bar"),label=document.getElementById("stepLabel"),symptoms=document.getElementById("symptoms");
+const refineBox=document.getElementById("refineBox"),refineQuestion=document.getElementById("refineQuestion"),confidenceText=document.getElementById("confidenceText"),confidenceBar=document.getElementById("confidenceBar"),dispatchLink=document.getElementById("dispatchLink");
 function setProgress(n){
   bar.style.width=n===1?"50%":"100%";
   label.textContent=n===1?"انتخاب سیستم":"انتخاب علامت خرابی";
@@ -149,22 +160,35 @@ function selectType(type){
  symptoms.querySelectorAll("button").forEach(btn=>btn.onclick=()=>showResult(+btn.dataset.i));
  setProgress(2);
 }
-function showResult(i){
- selectedSymptom=i;
- const s=flows[selectedType].symptoms[i];
+function applyResult(data, refined=false){
  const overrides=JSON.parse(localStorage.getItem("tahvika_price_rules")||"{}");
- const o=overrides[selectedType+":"+i];
- step2.hidden=true;step3.hidden=false;
- diagnosis.textContent=s.diagnosis;
- if(o && (o.min||o.max)){
+ const o=overrides[selectedType+":"+selectedSymptom];
+ diagnosis.textContent=data.diagnosis;
+ if(!refined && o && (o.min||o.max)){
    const nf=new Intl.NumberFormat("fa-IR");
    const min=o.min?nf.format(Number(o.min)):"—", max=o.max?nf.format(Number(o.max)):"—";
    price.textContent=(o.min&&o.max)?("حدود "+min+" تا "+max+" تومان"):("حدود "+(o.min?min:max)+" تومان");
- }else price.textContent=s.price;
- note.textContent=(o&&o.note)?o.note:s.note;
- reviewLink.href="online-review.html?type="+encodeURIComponent(selectedType)+"&symptom="+i;
+ }else price.textContent=data.price;
+ note.textContent=(!refined&&o&&o.note)?o.note:data.note;
+ confidenceText.textContent=refined?"دقیق‌تر":"اولیه";
+ confidenceBar.style.width=refined?"82%":"52%";
+}
+function showResult(i){
+ selectedSymptom=i;
+ currentSymptom=flows[selectedType].symptoms[i];
+ step2.hidden=true;step3.hidden=false;
+ applyResult(currentSymptom,false);
+ if(currentSymptom.refine){
+   refineBox.hidden=false;
+   refineQuestion.textContent=currentSymptom.refine.q;
+ }else refineBox.hidden=true;
+ const suffix="?type="+encodeURIComponent(selectedType)+"&symptom="+i;
+ reviewLink.href="online-review.html"+suffix;
+ dispatchLink.href="online-review.html"+suffix+"&mode=dispatch";
  bar.style.width="100%"; label.textContent="برآورد آماده است";
 }
+refineYes.onclick=()=>{if(currentSymptom?.refine){applyResult(currentSymptom.refine.yes,true);refineBox.hidden=true;label.textContent="برآورد دقیق‌تر شد"}};
+refineNo.onclick=()=>{if(currentSymptom?.refine){applyResult(currentSymptom.refine.no,true);refineBox.hidden=true;label.textContent="برآورد دقیق‌تر شد"}};
 document.querySelectorAll("[data-type]").forEach(btn=>btn.onclick=()=>selectType(btn.dataset.type));
 back1.onclick=()=>{step2.hidden=true;step1.hidden=false;setProgress(1)};
 restart.onclick=()=>{step3.hidden=true;step1.hidden=false;setProgress(1)};
