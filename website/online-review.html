@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>کارشناسی آنلاین | تهویکا</title>
+<meta name="description" content="ارسال عکس یا ویدئو برای کارشناسی آنلاین و برآورد دقیق‌تر هزینه تأسیسات.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="estimate-page">
+<header class="header">
+  <div class="container nav">
+    <a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>تأسیسات ساختمان</small></span></a>
+    <nav><a href="estimate.html">برآورد آنلاین</a><a href="index.html#services">خدمات</a></nav>
+    <a class="btn soft" href="estimate.html">بازگشت</a>
+  </div>
+</header>
+
+<main class="estimate-main">
+<div class="container estimate-shell">
+  <section class="estimate-intro">
+    <span class="kicker">مرحله تکمیلی</span>
+    <h1 id="pageTitle">کارشناسی آنلاین با عکس یا ویدئو</h1>
+    <p id="pageLead">اگر برآورد خودکار برای تصمیم‌گیری کافی نیست، چند اطلاعات کوتاه و تصویر یا ویدئو بفرست تا کارشناس بررسی دقیق‌تری انجام دهد.</p>
+  </section>
+
+  <section class="estimate-card review-card">
+    <div class="review-summary" id="summary">
+      <span>اطلاعات برآورد قبلی</span>
+      <b id="summaryText">در حال آماده‌سازی...</b>
+    </div>
+
+    <form onsubmit="event.preventDefault(); document.getElementById('success').hidden=false; this.querySelector('button[type=submit]').disabled=true;">
+      <div class="form-grid">
+        <label><span>نام و نام خانوادگی</span><input required placeholder="مثلاً علی عمرانی"></label>
+        <label><span>شماره تماس</span><input required inputmode="tel" placeholder="09xxxxxxxxx"></label>
+        <label class="full"><span>توضیح کوتاه مشکل</span><textarea rows="4" placeholder="هر چیزی که فکر می‌کنی به تشخیص کمک می‌کند..."></textarea></label>
+        <label class="full upload-box">
+          <span>عکس یا ویدئو</span>
+          <input type="file" accept="image/*,video/*" multiple>
+          <small>در نسخه نهایی فایل‌ها روی سرور ذخیره می‌شوند و کارشناس از پنل مدیریت آن‌ها را بررسی می‌کند.</small>
+        </label>
+        <label class="full"><span>زمان مناسب تماس</span>
+          <select><option>فرقی ندارد</option><option>صبح</option><option>ظهر</option><option>عصر</option></select>
+        </label>
+      </div>
+      <button class="btn primary big submit-wide" type="submit" id="submitBtn">ارسال برای کارشناسی</button>
+      <div class="prototype-success" id="success" hidden>
+        <b>درخواست نمونه ثبت شد ✓</b>
+        <p>این فقط پروتوتایپ است؛ در نسخه عملیاتی، درخواست در پنل مدیریت ثبت و برای کارشناس اعلان می‌شود.</p>
+      </div>
+    </form>
+  </section>
+
+  <section class="estimate-note">
+    <b>مسیر نهایی مشتری</b>
+    <p>برآورد خودکار ← ارسال عکس/ویدئو در صورت نیاز ← اعلام بازه دقیق‌تر توسط کارشناس ← تأیید مشتری ← ثبت اعزام.</p>
+  </section>
+</div>
+</main>
+
+<script>
+const names={pump:"پمپ و آبرسانی",cooling:"کولر گازی / داکت اسپلیت",central:"فن‌کویل / چیلر",heating:"پکیج / موتورخانه",floor:"گرمایش از کف / رادیاتور",plumbing:"لوله‌کشی",vent:"تهویه / هواکش",pool:"استخر / تصفیه آب"};
+const p=new URLSearchParams(location.search), type=p.get("type"), mode=p.get("mode");
+if(mode==="dispatch"){
+ document.getElementById("pageTitle").textContent="درخواست اعزام کارشناس";
+ document.getElementById("pageLead").textContent="مشخصات تماس و زمان مناسب را ثبت کن تا درخواست بازدید حضوری آماده شود.";
+ document.getElementById("submitBtn").textContent="ثبت درخواست اعزام";
+}
+document.getElementById("summaryText").textContent=type&&names[type] ? "سیستم انتخاب‌شده: "+names[type] : "برآورد قبلی مستقیماً از همین صفحه قابل تکمیل است.";
+</script>
+</body>
+</html>
