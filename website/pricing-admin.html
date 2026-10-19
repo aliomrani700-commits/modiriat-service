@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مدیریت قیمت‌ها | تهویکا</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="admin-page">
+<header class="admin-header"><div class="container admin-nav">
+  <div class="brand"><span class="logo">ت</span><span><strong>قیمت‌گذاری تهویکا</strong><small>مدیریت بازه‌های برآورد آنلاین</small></span></div>
+  <div class="admin-head-actions"><a class="btn soft" href="admin.html">پنل درخواست‌ها</a><a class="btn soft" href="estimate.html">تست برآورد</a></div>
+</div></header>
+<main class="admin-main"><div class="container">
+<section class="admin-hero">
+ <div><span class="kicker">قیمت‌گذاری بدون تغییر کد</span><h1>بازه قیمت هر ایراد را تنظیم کن</h1><p>قیمت‌هایی که اینجا وارد می‌کنی، در همان مرورگر مستقیماً در سیستم برآورد آنلاین استفاده می‌شوند. در نسخه نهایی این اطلاعات داخل دیتابیس ذخیره می‌شوند.</p></div>
+ <button class="btn danger" id="resetBtn">پاک کردن قیمت‌های سفارشی</button>
+</section>
+<section class="pricing-board" id="pricingBoard"></section>
+</div></main>
+<script>
+const services={
+pump:{name:"پمپ و آبرسانی",items:["فشار آب کم شده","پمپ مدام قطع و وصل می‌شود","پمپ صدای غیرعادی دارد","پمپ روشن نمی‌شود"]},
+cooling:{name:"کولر گازی / داکت اسپلیت",items:["باد گرم می‌زند","آبریزش دارد","سرمایش ضعیف است","اصلاً روشن نمی‌شود"]},
+central:{name:"فن‌کویل / چیلر",items:["فن‌کویل آب می‌دهد","باد کم یا سرمایش ضعیف است","فن صدای غیرعادی دارد","چیلر یا مدار مرکزی ضعیف شده"]},
+heating:{name:"پکیج / موتورخانه",items:["فشار سیستم کم می‌شود","گرمایش ضعیف است","ارور یا خاموشی دارد","صدای غیرعادی دارد"]},
+floor:{name:"گرمایش از کف / رادیاتور",items:["بخشی از کف سرد است","یک رادیاتور گرم نمی‌شود","کل سیستم ضعیف گرم می‌کند","نشتی در کلکتور یا شیرها دارم"]},
+plumbing:{name:"لوله‌کشی",items:["نشتی مشخص دارم","افت فشار دارم","لوله فرسوده است","نمی‌دانم مشکل دقیق چیست"]},
+vent:{name:"تهویه / هواکش / کانال",items:["هواکش صدای زیادی دارد","مکش ضعیف است","فن روشن نمی‌شود","نشتی هوا یا مشکل کانال دارم"]},
+pool:{name:"استخر / تصفیه آب",items:["گردش آب ضعیف شده","پمپ تصفیه صدا می‌دهد","فیلتر خوب کار نمی‌کند","دستگاه تصفیه آب افت فشار دارد"]}
+};
+const key="tahvika_price_rules";
+function load(){try{return JSON.parse(localStorage.getItem(key)||"{}")}catch{return{}}}
+function save(data){localStorage.setItem(key,JSON.stringify(data))}
+function render(){
+ const data=load();
+ pricingBoard.innerHTML=Object.entries(services).map(([type,s])=>'<section class="pricing-service"><div class="pricing-service-head"><h2>'+s.name+'</h2><span>'+s.items.length+' حالت</span></div><div class="pricing-rows">'+s.items.map((label,i)=>{const x=data[type+":"+i]||{};return '<div class="pricing-row"><div class="pricing-label"><b>'+label+'</b><small>کد: '+type+':'+i+'</small></div><label><span>حداقل</span><input inputmode="numeric" data-key="'+type+':'+i+'" data-field="min" value="'+(x.min||"")+'" placeholder="تومان"></label><label><span>حداکثر</span><input inputmode="numeric" data-key="'+type+':'+i+'" data-field="max" value="'+(x.max||"")+'" placeholder="تومان"></label><label class="pricing-note"><span>توضیح اختیاری</span><input data-key="'+type+':'+i+'" data-field="note" value="'+(x.note||"")+'" placeholder="پیام تکمیلی برای مشتری"></label></div>'}).join("")+'</div></section>').join("");
+ document.querySelectorAll(".pricing-row input").forEach(inp=>inp.addEventListener("change",()=>{
+   const all=load(),k=inp.dataset.key; all[k]=all[k]||{}; all[k][inp.dataset.field]=inp.value.trim();
+   if(!all[k].min&&!all[k].max&&!all[k].note)delete all[k]; save(all);
+ }));
+}
+resetBtn.onclick=()=>{if(confirm("همه قیمت‌های سفارشی پاک شود؟")){localStorage.removeItem(key);render()}};
+render();
+</script>
+</body></html>
