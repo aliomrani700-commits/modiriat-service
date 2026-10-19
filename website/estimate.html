@@ -146,8 +146,16 @@ function selectType(type){
 function showResult(i){
  selectedSymptom=i;
  const s=flows[selectedType].symptoms[i];
+ const overrides=JSON.parse(localStorage.getItem("tahvika_price_rules")||"{}");
+ const o=overrides[selectedType+":"+i];
  step2.hidden=true;step3.hidden=false;
- diagnosis.textContent=s.diagnosis;price.textContent=s.price;note.textContent=s.note;
+ diagnosis.textContent=s.diagnosis;
+ if(o && (o.min||o.max)){
+   const nf=new Intl.NumberFormat("fa-IR");
+   const min=o.min?nf.format(Number(o.min)):"—", max=o.max?nf.format(Number(o.max)):"—";
+   price.textContent=(o.min&&o.max)?("حدود "+min+" تا "+max+" تومان"):("حدود "+(o.min?min:max)+" تومان");
+ }else price.textContent=s.price;
+ note.textContent=(o&&o.note)?o.note:s.note;
  reviewLink.href="online-review.html?type="+encodeURIComponent(selectedType)+"&symptom="+i;
  bar.style.width="100%"; label.textContent="برآورد آماده است";
 }
