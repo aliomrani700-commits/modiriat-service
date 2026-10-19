@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مدیریت محتوای سایت | تهویکا</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="admin-page content-admin-page">
+<header class="admin-header"><div class="container admin-nav">
+  <div class="brand"><span class="logo">ت</span><span><strong>محتوای تهویکا</strong><small>پروژه‌ها، تصاویر و نظرات مشتریان</small></span></div>
+  <div class="admin-head-actions"><a class="btn soft" href="admin.html">درخواست‌ها</a><a class="btn soft" href="pricing-admin.html">قیمت‌ها</a><a class="btn soft" href="index.html">مشاهده سایت</a></div>
+</div></header>
+
+<main class="admin-main"><div class="container">
+<section class="admin-hero">
+  <div><span class="kicker">اعتمادسازی با محتوای واقعی</span><h1>عکس کارها و نظر مشتری‌ها را مدیریت کن</h1><p>در نسخه نهایی فایل‌ها روی سرور ذخیره می‌شوند. فعلاً برای تست ساختار می‌توانی عنوان، توضیح، نوع خدمت و آدرس تصویر را وارد کنی و نتیجه را همان مرورگر در صفحه اصلی ببینی.</p></div>
+  <button class="btn primary" id="seedContent">ساخت محتوای نمونه</button>
+</section>
+
+<section class="content-admin-grid">
+  <div class="content-panel">
+    <div class="content-panel-head"><div><span>پروژه‌ها</span><h2>نمونه‌کارهای واقعی</h2></div><button class="btn soft" id="addProject">+ پروژه جدید</button></div>
+    <div id="projectList" class="content-list"></div>
+  </div>
+
+  <div class="content-panel">
+    <div class="content-panel-head"><div><span>نظرات</span><h2>بازخورد مشتریان</h2></div><button class="btn soft" id="addReview">+ نظر جدید</button></div>
+    <div id="reviewList" class="content-list"></div>
+  </div>
+</section>
+
+<section class="content-note">
+  <b>اصل اعتمادسازی</b>
+  <p>نظر ساختگی یا پروژه غیرواقعی منتشر نمی‌کنیم. بهترین حالت این است که هر پروژه چند عکس واقعی، توضیح کوتاه مشکل و نتیجه کار داشته باشد و نظر مشتری هم فقط با اجازه خودش نمایش داده شود.</p>
+</section>
+</div></main>
+
+<dialog id="projectDialog" class="admin-dialog content-dialog">
+  <div class="dialog-head"><div><small>پروژه</small><h2 id="projectDialogTitle">پروژه جدید</h2></div><button onclick="projectDialog.close()">×</button></div>
+  <form id="projectForm" class="content-form">
+    <input type="hidden" id="projectId">
+    <label><span>عنوان پروژه</span><input id="projectTitle" required placeholder="مثلاً اصلاح سیستم پمپ ساختمان"></label>
+    <label><span>دسته خدمت</span><input id="projectCategory" required placeholder="مثلاً پمپ و آبرسانی"></label>
+    <label class="full"><span>توضیح کوتاه</span><textarea id="projectDesc" rows="3" placeholder="مشکل چه بود و چه کاری انجام شد؟"></textarea></label>
+    <label class="full"><span>آدرس تصویر</span><input id="projectImage" placeholder="https://..."><small>در نسخه نهایی آپلود مستقیم عکس جایگزین این فیلد می‌شود.</small></label>
+    <div class="dialog-actions full"><button class="btn primary" type="submit">ذخیره پروژه</button></div>
+  </form>
+</dialog>
+
+<dialog id="reviewDialog" class="admin-dialog content-dialog">
+  <div class="dialog-head"><div><small>نظر مشتری</small><h2 id="reviewDialogTitle">نظر جدید</h2></div><button onclick="reviewDialog.close()">×</button></div>
+  <form id="reviewForm" class="content-form">
+    <input type="hidden" id="reviewId">
+    <label><span>نام نمایشی</span><input id="reviewName" required placeholder="مثلاً آقای رضایی"></label>
+    <label><span>نوع خدمت</span><input id="reviewService" required placeholder="مثلاً سرویس پمپ آب"></label>
+    <label class="full"><span>متن نظر</span><textarea id="reviewText" required rows="4" placeholder="متن واقعی نظر مشتری..."></textarea></label>
+    <label><span>تأیید برای انتشار</span><select id="reviewApproved"><option value="yes">بله</option><option value="no">خیر</option></select></label>
+    <div class="dialog-actions full"><button class="btn primary" type="submit">ذخیره نظر</button></div>
+  </form>
+</dialog>
+
+<script>
+const key="tahvika_content";
+function load(){try{return JSON.parse(localStorage.getItem(key)||'{"projects":[],"reviews":[]}')}catch{return{projects:[],reviews:[]}}}
+function save(v){localStorage.setItem(key,JSON.stringify(v))}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function render(){
+ const d=load();
+ projectList.innerHTML=d.projects.length?d.projects.map(x=>'<article class="content-item"><div class="content-thumb" style="background-image:url('+JSON.stringify(x.image||"").slice(1,-1)+')"></div><div><span>'+esc(x.category)+'</span><b>'+esc(x.title)+'</b><p>'+esc(x.desc||"")+'</p></div><div class="content-actions"><button data-edit-project="'+esc(x.id)+'">ویرایش</button><button data-delete-project="'+esc(x.id)+'">حذف</button></div></article>').join(""):'<div class="content-empty">هنوز پروژه‌ای ثبت نشده.</div>';
+ reviewList.innerHTML=d.reviews.length?d.reviews.map(x=>'<article class="content-item review-content-item"><div><span>'+esc(x.service)+'</span><b>'+esc(x.name)+'</b><p>'+esc(x.text)+'</p><small>'+(x.approved==="yes"?"قابل انتشار":"منتظر تأیید")+'</small></div><div class="content-actions"><button data-edit-review="'+esc(x.id)+'">ویرایش</button><button data-delete-review="'+esc(x.id)+'">حذف</button></div></article>').join(""):'<div class="content-empty">هنوز نظری ثبت نشده.</div>';
+ document.querySelectorAll("[data-edit-project]").forEach(b=>b.onclick=()=>openProject(b.dataset.editProject));
+ document.querySelectorAll("[data-delete-project]").forEach(b=>b.onclick=()=>removeItem("projects",b.dataset.deleteProject));
+ document.querySelectorAll("[data-edit-review]").forEach(b=>b.onclick=()=>openReview(b.dataset.editReview));
+ document.querySelectorAll("[data-delete-review]").forEach(b=>b.onclick=()=>removeItem("reviews",b.dataset.deleteReview));
+}
+function removeItem(type,id){if(!confirm("این مورد حذف شود؟"))return;const d=load();d[type]=d[type].filter(x=>x.id!==id);save(d);render()}
+function openProject(id=""){
+ const x=id?load().projects.find(v=>v.id===id):null;projectId.value=x?.id||"";projectTitle.value=x?.title||"";projectCategory.value=x?.category||"";projectDesc.value=x?.desc||"";projectImage.value=x?.image||"";projectDialogTitle.textContent=x?"ویرایش پروژه":"پروژه جدید";projectDialog.showModal();
+}
+function openReview(id=""){
+ const x=id?load().reviews.find(v=>v.id===id):null;reviewId.value=x?.id||"";reviewName.value=x?.name||"";reviewService.value=x?.service||"";reviewText.value=x?.text||"";reviewApproved.value=x?.approved||"yes";reviewDialogTitle.textContent=x?"ویرایش نظر":"نظر جدید";reviewDialog.showModal();
+}
+addProject.onclick=()=>openProject();addReview.onclick=()=>openReview();
+projectForm.onsubmit=e=>{e.preventDefault();const d=load(),id=projectId.value||"P-"+Date.now();const item={id,title:projectTitle.value.trim(),category:projectCategory.value.trim(),desc:projectDesc.value.trim(),image:projectImage.value.trim()};const i=d.projects.findIndex(x=>x.id===id);if(i>=0)d.projects[i]=item;else d.projects.unshift(item);save(d);projectDialog.close();render()};
+reviewForm.onsubmit=e=>{e.preventDefault();const d=load(),id=reviewId.value||"R-"+Date.now();const item={id,name:reviewName.value.trim(),service:reviewService.value.trim(),text:reviewText.value.trim(),approved:reviewApproved.value};const i=d.reviews.findIndex(x=>x.id===id);if(i>=0)d.reviews[i]=item;else d.reviews.unshift(item);save(d);reviewDialog.close();render()};
+seedContent.onclick=()=>{const d=load();if(!d.projects.length)d.projects=[
+{id:"P1",title:"اصلاح سیستم پمپ و فشار ساختمان",category:"پمپ و آبرسانی",desc:"بررسی افت فشار، تنظیم منبع و اصلاح عملکرد سیستم.",image:"https://images.pexels.com/photos/30226733/pexels-photo-30226733/free-photo-of-technician-inspecting-industrial-control-room.jpeg?auto=compress&cs=tinysrgb&w=1200"},
+{id:"P2",title:"سرویس تجهیزات سرمایشی",category:"سرمایش",desc:"شست‌وشو، بررسی عملکرد و رفع ایرادهای اصلی سیستم.",image:"https://images.pexels.com/photos/6471911/pexels-photo-6471911.jpeg?auto=compress&cs=tinysrgb&w=1200"}
+];if(!d.reviews.length)d.reviews=[{id:"R1",name:"مشتری نمونه",service:"پمپ و آبرسانی",text:"این متن فقط برای تست چیدمان است و در نسخه نهایی با نظر واقعی مشتری جایگزین می‌شود.",approved:"yes"}];save(d);render()};
+render();
+</script>
+</body></html>
