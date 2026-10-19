@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>پیگیری درخواست | تهویکا</title>
+<meta name="description" content="پیگیری وضعیت کارشناسی، برآورد هزینه و اعزام کارشناس.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="estimate-page">
+<header class="header"><div class="container nav">
+<a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>تأسیسات ساختمان</small></span></a>
+<nav><a href="estimate.html">برآورد آنلاین</a><a href="index.html#services">خدمات</a></nav>
+<a class="btn soft" href="index.html">صفحه اصلی</a>
+</div></header>
+
+<main class="estimate-main">
+<div class="container status-shell">
+<section class="estimate-intro">
+<span class="kicker">پیگیری درخواست</span>
+<h1>کد پیگیری را وارد کن</h1>
+<p>وضعیت کارشناسی، پاسخ متخصص، بازه هزینه و مرحله اعزام را همین‌جا ببین.</p>
+</section>
+
+<section class="estimate-card tracking-card">
+<div class="tracking-search">
+<input id="trackCode" placeholder="مثلاً TH-12345678">
+<button class="btn primary" id="trackBtn">پیگیری</button>
+</div>
+<div id="notFound" class="track-message" hidden>درخواستی با این کد در این نسخه آزمایشی پیدا نشد.</div>
+
+<div id="trackResult" hidden>
+  <div class="track-head"><div><span>کد پیگیری</span><b id="rId">—</b></div><span class="status" id="rStatus">—</span></div>
+  <div class="track-service"><small>خدمت</small><h2 id="rService">—</h2><p id="rDesc">—</p></div>
+
+  <div class="status-timeline" id="timeline">
+    <div data-s="new"><i></i><b>ثبت درخواست</b><small>درخواست دریافت شد</small></div>
+    <div data-s="reviewing"><i></i><b>بررسی کارشناس</b><small>اطلاعات در حال بررسی است</small></div>
+    <div data-s="quoted"><i></i><b>اعلام برآورد</b><small>بازه هزینه آماده شده</small></div>
+    <div data-s="dispatched"><i></i><b>اعزام</b><small>هماهنگی حضور کارشناس</small></div>
+    <div data-s="closed"><i></i><b>تکمیل</b><small>درخواست بسته شده</small></div>
+  </div>
+
+  <div class="customer-quote" id="quoteBox" hidden>
+    <span>برآورد کارشناس</span>
+    <strong id="rQuote">—</strong>
+    <p id="rExpertNote">—</p>
+    <div class="quote-customer-actions">
+      <button class="btn primary" id="acceptQuote">تأیید و درخواست اعزام</button>
+      <a class="btn soft" href="estimate.html">برآورد جدید</a>
+    </div>
+  </div>
+
+  <div class="track-meta"><span id="rName">—</span><span id="rPhone">—</span><span id="rTime">—</span></div>
+</div>
+</section>
+</div>
+</main>
+
+<script>
+const key="tahvika_requests";
+const labels={new:"جدید",reviewing:"در حال بررسی",quoted:"قیمت اعلام شده",dispatched:"اعزام شده",closed:"بسته شده"};
+const order=["new","reviewing","quoted","dispatched","closed"];
+const fa=n=>new Intl.NumberFormat("fa-IR").format(Number(n)||0);
+function load(){try{return JSON.parse(localStorage.getItem(key)||"[]")}catch{return[]}}
+function save(v){localStorage.setItem(key,JSON.stringify(v))}
+function showRequest(x){
+ notFound.hidden=true;trackResult.hidden=false;
+ rId.textContent=x.id;rStatus.textContent=labels[x.status]||x.status;rStatus.className="status "+x.status;
+ rService.textContent=x.serviceName||"خدمت تأسیساتی";rDesc.textContent=x.description||"بدون توضیح";
+ rName.textContent=x.name||"—";rPhone.textContent=x.phone||"—";rTime.textContent="زمان تماس: "+(x.contactTime||"فرقی ندارد");
+ const current=Math.max(0,order.indexOf(x.status||"new"));
+ document.querySelectorAll(".status-timeline>div").forEach((el,i)=>el.classList.toggle("done",i<=current));
+ if(x.quoteMin||x.quoteMax){
+   quoteBox.hidden=false;
+   const min=x.quoteMin?fa(x.quoteMin):"—",max=x.quoteMax?fa(x.quoteMax):"—";
+   rQuote.textContent=(x.quoteMin&&x.quoteMax)?min+" تا "+max+" تومان":(x.quoteMin?min:max)+" تومان";
+   rExpertNote.textContent=x.expertNote||"کارشناس بازه هزینه را اعلام کرده است.";
+ }else quoteBox.hidden=true;
+ acceptQuote.onclick=()=>{
+   const all=load(),i=all.findIndex(r=>r.id===x.id);
+   if(i>=0){all[i].status="dispatched";all[i].customerAcceptedAt=new Date().toISOString();save(all);showRequest(all[i]);}
+ };
+}
+function track(){
+ const code=trackCode.value.trim().toUpperCase(),x=load().find(r=>String(r.id).toUpperCase()===code);
+ if(!x){trackResult.hidden=true;notFound.hidden=false;return}showRequest(x);
+}
+trackBtn.onclick=track;trackCode.addEventListener("keydown",e=>{if(e.key==="Enter")track()});
+const q=new URLSearchParams(location.search).get("code");if(q){trackCode.value=q;track()}
+</script>
+</body></html>
