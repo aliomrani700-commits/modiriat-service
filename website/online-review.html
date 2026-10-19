@@ -10,7 +10,7 @@
 <header class="ph-header">
   <div class="container ph-nav">
     <a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>کارشناسی آنلاین</small></span></a>
-    <nav><a href="estimate.html" class="ph-hot">برآورد آنلاین</a><a href="guide.html">راهنمای عیب‌یابی</a><a href="request-status.html">پیگیری درخواست</a></nav>
+    <nav><a href="estimate.html" class="ph-hot">برآورد آنلاین</a><a href="guide.html">راهنمای فنی</a><a href="request-status.html">پیگیری درخواست</a></nav>
     <a class="btn soft" href="estimate.html">بازگشت به برآورد</a>
   </div>
 </header>
@@ -27,7 +27,7 @@
   <div class="review-layout">
   <section class="estimate-card review-card">
     <div class="review-summary">
-      <span>اطلاعات برآورد قبلی</span>
+      <span>اطلاعات شروع مکالمه</span>
       <b id="summaryText">در حال آماده‌سازی...</b>
     </div>
 
@@ -83,15 +83,27 @@
 
 <script>
 const names={pump:"پمپ و آبرسانی",cooling:"کولر گازی / داکت اسپلیت",central:"فن‌کویل / چیلر",heating:"پکیج / موتورخانه",floor:"گرمایش از کف / رادیاتور",plumbing:"لوله‌کشی",vent:"تهویه / هواکش",pool:"استخر / تصفیه آب"};
-const p=new URLSearchParams(location.search), type=p.get("type"), symptom=p.get("symptom"), mode=p.get("mode");
+const p=new URLSearchParams(location.search), type=p.get("type"), symptom=p.get("symptom"), mode=p.get("mode"),
+brand=p.get("brand"), model=p.get("model"), code=p.get("code"), source=p.get("source");
 if(mode==="dispatch"){
   pageTitle.textContent="درخواست اعزام کارشناس";
   pageLead.textContent="مشخصات تماس و زمان مناسب را ثبت کن تا درخواست بازدید حضوری آماده شود.";
   requestMode.value="dispatch";
   submitBtn.textContent="ثبت درخواست اعزام";
 }
-summaryText.textContent=type&&names[type] ? "سیستم انتخاب‌شده: "+names[type] : "این درخواست بدون برآورد قبلی ثبت می‌شود.";
-if(type&&names[type]) description.placeholder="علائم، زمان شروع مشکل و هر چیزی که به تشخیص "+names[type]+" کمک می‌کند...";
+const context=[];
+if(type&&names[type]) context.push("خدمت: "+names[type]);
+if(brand) context.push("برند: "+brand);
+if(model) context.push("مدل: "+model);
+if(code) context.push("کد خطا: "+code);
+summaryText.textContent=context.length ? context.join(" | ") : "موضوع را در توضیحات بنویس تا مکالمه از همان‌جا شروع شود.";
+if(source==="error-guide" && (brand||model||code)){
+  pageTitle.textContent="ادامه راهنمای فنی با کارشناس";
+  pageLead.textContent="اطلاعات مدل و کد خطا از مقاله همراه درخواست آمده؛ فقط عکس نمایشگر، پلاک مدل و علائم دستگاه را اضافه کن.";
+  description.value=["موضوع راهنما:",brand?("برند: "+brand):"",model?("مدل: "+model):"",code?("کد خطا: "+code):"","علائم دستگاه: "].filter(Boolean).join("\n");
+}else if(type&&names[type]){
+  description.placeholder="علائم، زمان شروع مشکل و هر چیزی که به تشخیص "+names[type]+" کمک می‌کند...";
+}
 
 files.addEventListener("change",()=>{
   const list=[...files.files].map(f=>f.name);
@@ -116,6 +128,10 @@ requestForm.addEventListener("submit",(e)=>{
    type:type||"",
    serviceName:type&&names[type]?names[type]:"مشخص نشده",
    symptom:symptom||"",
+   brand:brand||"",
+   model:model||"",
+   errorCode:code||"",
+   source:source||"",
    files:[...files.files].map(f=>f.name),
    status:"new"
  };
