@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>برآورد آنلاین هزینه | تهویکا</title>
+<meta name="description" content="با چند انتخاب ساده مشکل تأسیسات را مشخص کنید و برآورد اولیه هزینه بگیرید.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="estimate-page">
+<header class="header">
+  <div class="container nav">
+    <a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>تأسیسات ساختمان</small></span></a>
+    <nav><a href="index.html#services">خدمات</a><a href="index.html#projects">پروژه‌ها</a><a href="index.html#guides">راهنماها</a></nav>
+    <a class="btn soft" href="index.html">بازگشت به سایت</a>
+  </div>
+</header>
+
+<main class="estimate-main">
+  <div class="container estimate-shell">
+    <section class="estimate-intro">
+      <span class="kicker">کارشناسی سریع آنلاین</span>
+      <h1>با چند انتخاب کوتاه، حدود هزینه را قبل از اعزام ببین</h1>
+      <p>هدف این صفحه این است که با کمترین کلیک به یک تشخیص اولیه و بازه قیمت برسید. اگر اطلاعات کافی نباشد، مسیر کارشناسی آنلاین با عکس یا ویدئو پیشنهاد می‌شود.</p>
+      <div class="estimate-progress"><span id="bar"></span></div>
+      <small id="stepLabel">مرحله ۱ از ۳</small>
+    </section>
+
+    <section class="estimate-card" id="app">
+      <div id="step1">
+        <div class="estimate-heading"><span>اول</span><h2>مشکل مربوط به کدام سیستم است؟</h2></div>
+        <div class="system-picker">
+          <button data-type="pump"><b>💧</b><span>پمپ آب</span><small>افت فشار، صدا، قطع و وصل</small></button>
+          <button data-type="cooling"><b>❄️</b><span>کولر گازی / داکت</span><small>باد گرم، آبریزش، سرمایش ضعیف</small></button>
+          <button data-type="heating"><b>♨️</b><span>پکیج / موتورخانه</span><small>افت فشار، گرمایش ضعیف، خطا</small></button>
+          <button data-type="plumbing"><b>🔧</b><span>لوله‌کشی</span><small>نشتی، افت فشار، خرابی مسیر</small></button>
+        </div>
+      </div>
+
+      <div id="step2" hidden>
+        <div class="estimate-heading"><span>بعد</span><h2 id="symptomTitle">کدام مورد بیشتر شبیه مشکل شماست؟</h2></div>
+        <div class="symptom-picker" id="symptoms"></div>
+        <button class="btn soft estimate-back" id="back1">مرحله قبل</button>
+      </div>
+
+      <div id="step3" hidden>
+        <div class="estimate-heading"><span>تمام</span><h2>برآورد اولیه شما</h2></div>
+        <div class="result-box">
+          <span class="result-badge">برآورد اولیه</span>
+          <h3 id="diagnosis">—</h3>
+          <div class="price-range" id="price">—</div>
+          <p id="note">—</p>
+        </div>
+
+        <div class="result-actions">
+          <a class="btn primary big" href="#online-review">ارسال عکس برای کارشناسی دقیق‌تر</a>
+          <a class="btn soft big" href="#dispatch">درخواست اعزام کارشناس</a>
+        </div>
+
+        <div class="expert-options">
+          <div id="online-review"><b>کارشناسی آنلاین</b><p>در نسخه نهایی مشتری می‌تواند عکس یا ویدئو بفرستد تا کارشناس بازه هزینه را دقیق‌تر اعلام کند.</p></div>
+          <div id="dispatch"><b>اعزام کارشناس</b><p>اگر مشتری برآورد را پذیرفت، آدرس و زمان مناسب را ثبت می‌کند و درخواست اعزام ساخته می‌شود.</p></div>
+        </div>
+
+        <button class="btn soft estimate-back" id="restart">شروع دوباره</button>
+      </div>
+    </section>
+
+    <section class="estimate-note">
+      <b>چرا قیمت قطعی نیست؟</b>
+      <p>در تأسیسات، خرابی‌های مختلف می‌توانند علامت مشابه داشته باشند. این سیستم برای برآورد سریع طراحی می‌شود؛ قیمت نهایی بعد از اطلاعات کامل‌تر یا بازدید مشخص خواهد شد.</p>
+    </section>
+  </div>
+</main>
+
+<script>
+const flows={
+ pump:{
+  title:"مشکل پمپ آب کدام است؟",
+  symptoms:[
+   {label:"فشار آب کم شده",diagnosis:"احتمال ایراد در پمپ، منبع تحت فشار یا تنظیم فشار",price:"حدود ۱.۵ تا ۴ میلیون تومان",note:"اگر پمپ روشن است ولی فشار کم است، بررسی منبع، تنظیمات و مسیر آب لازم است."},
+   {label:"پمپ مدام قطع و وصل می‌شود",diagnosis:"احتمال مشکل منبع تحت فشار، تیوپ یا کلید فشار",price:"حدود ۱ تا ۳.۵ میلیون تومان",note:"بسته به سالم بودن منبع و قطعات کنترلی، هزینه می‌تواند متفاوت باشد."},
+   {label:"پمپ صدای غیرعادی دارد",diagnosis:"احتمال بلبرینگ، سیل مکانیکی یا ایراد مکانیکی پمپ",price:"حدود ۲ تا ۵ میلیون تومان",note:"ارسال ویدئو از صدای پمپ می‌تواند تشخیص آنلاین را دقیق‌تر کند."},
+   {label:"پمپ روشن نمی‌شود",diagnosis:"احتمال ایراد برق، خازن، کلید فشار یا موتور پمپ",price:"حدود ۱ تا ۵ میلیون تومان",note:"برای تشخیص دقیق‌تر، مدل پمپ و وضعیت برق ورودی مهم است."}
+  ]
+ },
+ cooling:{
+  title:"مشکل سیستم سرمایش کدام است؟",
+  symptoms:[
+   {label:"باد گرم می‌زند",diagnosis:"احتمال کمبود گاز، نشتی، کندانسور یا کمپرسور",price:"حدود ۲ تا ۸ میلیون تومان",note:"هزینه وابسته به علت کمبود سرمایش و نیاز یا عدم نیاز به قطعه است."},
+   {label:"آبریزش دارد",diagnosis:"احتمال گرفتگی درین، عایق یا یخ‌زدگی پنل",price:"حدود ۱ تا ۳ میلیون تومان",note:"در بسیاری از موارد با اصلاح درین و سرویس قابل رفع است."},
+   {label:"سرمایش ضعیف است",diagnosis:"احتمال کثیفی، کمبود گاز یا افت راندمان",price:"حدود ۱.۵ تا ۶ میلیون تومان",note:"ارسال عکس پنل و یونیت خارجی می‌تواند برآورد را بهتر کند."},
+   {label:"اصلاً روشن نمی‌شود",diagnosis:"احتمال خازن، برق، برد یا موتور فن",price:"حدود ۱.۵ تا ۷ میلیون تومان",note:"مدل دستگاه و علائم قبل از خاموشی در تشخیص مؤثر است."}
+  ]
+ },
+ heating:{
+  title:"مشکل پکیج یا موتورخانه کدام است؟",
+  symptoms:[
+   {label:"فشار سیستم کم می‌شود",diagnosis:"احتمال نشتی، منبع انبساط یا شیر اطمینان",price:"حدود ۱ تا ۴ میلیون تومان",note:"محل نشتی و وضعیت منبع انبساط روی هزینه اثر دارد."},
+   {label:"گرمایش ضعیف است",diagnosis:"احتمال هوا، رسوب، پمپ یا تنظیم نبودن مدار",price:"حدود ۱.۵ تا ۵ میلیون تومان",note:"برای ساختمان‌های بزرگ، وضعیت پمپ‌ها و بالانس مدار هم بررسی می‌شود."},
+   {label:"ارور یا خاموشی دارد",diagnosis:"احتمال سنسور، فن، پرشر یا برد",price:"حدود ۱.۵ تا ۸ میلیون تومان",note:"کد خطا یا عکس نمایشگر تشخیص آنلاین را خیلی دقیق‌تر می‌کند."},
+   {label:"صدای غیرعادی دارد",diagnosis:"احتمال پمپ، فن یا رسوب مدار",price:"حدود ۱.۵ تا ۵ میلیون تومان",note:"ویدئوی صدا برای کارشناسی آنلاین بسیار مفید است."}
+  ]
+ },
+ plumbing:{
+  title:"مشکل لوله‌کشی کدام است؟",
+  symptoms:[
+   {label:"نشتی مشخص دارم",diagnosis:"احتمال خرابی اتصال، شیر یا بخش موضعی لوله",price:"حدود ۱ تا ۴ میلیون تومان",note:"دسترسی به محل نشتی و نیاز به تخریب روی قیمت اثر مستقیم دارد."},
+   {label:"افت فشار دارم",diagnosis:"احتمال گرفتگی، نشتی پنهان یا ایراد مسیر",price:"حدود ۱.۵ تا ۵ میلیون تومان",note:"برای تشخیص باید محل و گستره افت فشار مشخص شود."},
+   {label:"لوله فرسوده است",diagnosis:"احتمال نیاز به تعویض موضعی یا بازسازی مسیر",price:"نیاز به کارشناسی دقیق‌تر",note:"این مورد بدون دیدن مسیر و متراژ، قیمت قابل اتکایی ندارد."},
+   {label:"نمی‌دانم مشکل دقیق چیست",diagnosis:"نیاز به کارشناسی آنلاین یا بازدید",price:"پس از بررسی عکس/ویدئو",note:"می‌توانید عکس یا ویدئو بفرستید تا قبل از اعزام، تشخیص اولیه انجام شود."}
+  ]
+ }
+};
+
+let selectedType=null;
+const step1=document.getElementById("step1"),step2=document.getElementById("step2"),step3=document.getElementById("step3");
+const bar=document.getElementById("bar"),label=document.getElementById("stepLabel"),symptoms=document.getElementById("symptoms");
+function setProgress(n){bar.style.width=(n*33.33)+"%";label.textContent="مرحله "+n+" از ۳";}
+function selectType(type){
+ selectedType=type; const f=flows[type];
+ step1.hidden=true;step2.hidden=false;step3.hidden=true;
+ document.getElementById("symptomTitle").textContent=f.title;
+ symptoms.innerHTML=f.symptoms.map((s,i)=>'<button data-i="'+i+'"><span>'+s.label+'</span><b>←</b></button>').join("");
+ symptoms.querySelectorAll("button").forEach(btn=>btn.onclick=()=>showResult(+btn.dataset.i));
+ setProgress(2);
+}
+function showResult(i){
+ const s=flows[selectedType].symptoms[i];
+ step2.hidden=true;step3.hidden=false;
+ diagnosis.textContent=s.diagnosis;price.textContent=s.price;note.textContent=s.note;setProgress(3);
+}
+document.querySelectorAll("[data-type]").forEach(btn=>btn.onclick=()=>selectType(btn.dataset.type));
+back1.onclick=()=>{step2.hidden=true;step1.hidden=false;setProgress(1)};
+restart.onclick=()=>{step3.hidden=true;step1.hidden=false;setProgress(1)};
+const q=new URLSearchParams(location.search).get("type");if(q&&flows[q])selectType(q);
+setProgress(q&&flows[q]?2:1);
+</script>
+</body>
+</html>
