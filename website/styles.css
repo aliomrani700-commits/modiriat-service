@@ -263,3 +263,9 @@ footer{background:#081715;color:#dbe8e5;padding:54px 0 24px}.footer-grid{display
 
 @media(max-width:860px){.review-layout{grid-template-columns:1fr}.review-side{position:static;grid-template-columns:1fr 1fr}.tracking-help-grid,.content-admin-grid{grid-template-columns:1fr}}
 @media(max-width:650px){.review-side{grid-template-columns:1fr}.tracking-benefits,.review-benefits{justify-content:flex-start}.tracking-search-label{align-items:flex-start;flex-direction:column}.content-item{grid-template-columns:74px 1fr}.content-actions{grid-column:1/-1;flex-direction:row}.content-form{grid-template-columns:1fr}.content-form label.full,.content-form .full{grid-column:auto}}
+
+
+/* ===== Final prototype polish ===== */
+.pricing-hint{margin-bottom:16px;padding:16px 18px;background:#f8fbfa;border:1px dashed #b8d8d1;border-radius:16px}.pricing-hint b{display:block;font-size:12px}.pricing-hint p{margin:3px 0 0;font-size:9px;color:var(--muted)}
+.guide-topic-grid button.active{border-color:#8fcfc3;background:#eef9f6;box-shadow:0 14px 32px rgba(13,143,122,.10)}
+.guide-topic-grid button.active span{color:var(--brand)}
