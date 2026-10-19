@@ -20,15 +20,28 @@
     <a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>خدمات تخصصی تأسیسات ساختمان</small></span></a>
     <nav>
       <a href="estimate.html" class="ph-hot">برآورد هزینه</a>
+      <a href="guide.html">راهنمای عیب‌یابی</a>
       <a href="#services">خدمات</a>
       <a href="#maintenance">سرویس دوره‌ای</a>
       <a href="#projects">پروژه‌ها</a>
-      <a href="#guides">راهنماها</a>
+      <a href="#reviews">نظرات</a>
       <a href="#about">درباره ما</a>
     </nav>
-    <a class="btn primary" href="estimate.html">شروع برآورد</a>
+    <a class="btn primary ph-desktop-cta" href="estimate.html">شروع برآورد</a>
+    <button class="ph-menu-btn" id="menuBtn" aria-label="باز کردن منو"><span></span><span></span><span></span></button>
   </div>
 </header>
+<div class="ph-drawer" id="mobileDrawer" aria-hidden="true">
+  <div class="ph-drawer-head"><strong>منوی سایت</strong><button id="menuClose" aria-label="بستن">×</button></div>
+  <a href="estimate.html">برآورد آنلاین هزینه</a>
+  <a href="guide.html">راهنمای عیب‌یابی و خودیاری</a>
+  <a href="#services">خدمات</a>
+  <a href="#projects">نمونه‌کارها</a>
+  <a href="#reviews">نظرات مشتریان</a>
+  <a href="request-status.html">پیگیری درخواست</a>
+  <a href="#about">درباره ما</a>
+</div>
+<div class="ph-drawer-backdrop" id="drawerBackdrop"></div>
 
 <main>
 <section class="ph-hero">
@@ -40,8 +53,8 @@
       <h1>قبل از اعزام،<br><em>حدود هزینه را بدان.</em></h1>
       <p>مشکل را با چند انتخاب کوتاه مشخص کن، برآورد اولیه بگیر و اگر لازم بود عکس یا ویدئو برای بررسی دقیق‌تر بفرست. بعد از تأیید خودت، اعزام انجام می‌شود.</p>
       <div class="ph-hero-actions">
-        <a class="btn primary big" href="estimate.html">برآورد آنلاین هزینه</a>
-        <a class="btn glass big" href="#services">مشاهده خدمات</a>
+        <a class="btn primary big" href="estimate.html">برآورد قیمت و درخواست کارشناس</a>
+        <a class="btn glass big" href="guide.html">اول خودم راهنمایی می‌خوام</a>
       </div>
       <div class="ph-trust-row">
         <span><i>✓</i> بدون ثبت‌نام</span>
@@ -63,6 +76,32 @@
       </div>
       <a class="ph-estimator-all" href="estimate.html">همه خدمات و شروع برآورد ←</a>
     </aside>
+  </div>
+</section>
+
+<section class="ph-pathways">
+  <div class="container">
+    <div class="ph-section-head">
+      <div><span class="ph-kicker">دو مسیر، بدون اجبار</span><h2>می‌خوای خودت بررسی کنی یا مستقیم سرویس‌کار بیاد؟</h2></div>
+      <p>کاربر از همان ابتدا مسیر خودش را انتخاب می‌کند؛ راهنمایی فنی و عیب‌یابی از مسیر قیمت‌گیری و اعزام جداست.</p>
+    </div>
+    <div class="ph-path-grid">
+      <a class="ph-path-card self" href="guide.html">
+        <div class="ph-path-icon">⌁</div>
+        <span>مسیر راهنمایی</span>
+        <h3>اول کمکم کن بفهمم مشکل چیه</h3>
+        <p>راهنمای مرحله‌ای، مقاله‌های کوتاه و پرسش‌های عیب‌یابی. اگر مشکل ساده و بی‌خطر باشد، کاربر شاید خودش حلش کند؛ اگر نه، در همان مسیر درخواست کارشناس می‌دهد.</p>
+        <b>شروع عیب‌یابی و راهنمایی ←</b>
+      </a>
+      <a class="ph-path-card service" href="estimate.html">
+        <div class="ph-path-icon">✓</div>
+        <span>مسیر سرویس</span>
+        <h3>نمی‌خوام خودم دست بزنم؛ هزینه رو بگو</h3>
+        <p>چند انتخاب کوتاه، برآورد اولیه، امکان ارسال عکس و ویدئو، و بعد ثبت درخواست کارشناسی یا اعزام.</p>
+        <b>برآورد قیمت و درخواست سرویس ←</b>
+      </a>
+    </div>
+    <div class="ph-safety-note">راهنمایی‌های خودیاری فقط برای کارهای ساده و کم‌خطر طراحی می‌شوند؛ موارد برقی، گاز، فشار بالا یا کارهایی که نیاز به ابزار تخصصی دارند مستقیماً به کارشناس ارجاع می‌شوند.</div>
   </div>
 </section>
 
@@ -147,6 +186,25 @@
   </div>
 </section>
 
+<section class="ph-section ph-proof" id="reviews">
+  <div class="container">
+    <div class="ph-section-head">
+      <div><span class="ph-kicker">اعتماد از کار واقعی</span><h2>عکس پروژه‌های انجام‌شده و نظر مشتری‌ها</h2></div>
+      <p>در نسخه نهایی فقط عکس‌های واقعی مجموعه و نظرهای واقعی مشتری‌ها نمایش داده می‌شوند؛ فعلاً این بخش به‌عنوان جایگاه محتوای واقعی طراحی شده است.</p>
+    </div>
+    <div class="ph-gallery">
+      <div class="ph-gallery-main"><img src="https://images.pexels.com/photos/30226733/pexels-photo-30226733/free-photo-of-technician-inspecting-industrial-control-room.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="نمونه جایگاه پروژه واقعی"><span>جایگاه عکس پروژه واقعی</span></div>
+      <div class="ph-gallery-side"><img src="https://images.pexels.com/photos/6471911/pexels-photo-6471911.jpeg?auto=compress&cs=tinysrgb&w=900" alt="نمونه جایگاه قبل و بعد"><span>قبل / بعد</span></div>
+      <div class="ph-gallery-side ph-gallery-blank"><div>+ عکس‌های واقعی پروژه‌ها</div><small>بعداً از کارهای خودتان بارگذاری می‌شود</small></div>
+    </div>
+    <div class="ph-review-grid">
+      <article><span class="ph-review-label">جایگاه نظر واقعی مشتری</span><p>بعد از شروع کار، نظر مشتری با اجازه خودش در این بخش نمایش داده می‌شود؛ بدون ساختن نظر یا امتیاز جعلی.</p><small>نام و نوع خدمت پس از تأیید مشتری</small></article>
+      <article><span class="ph-review-label">تجربه قابل پیگیری</span><p>می‌توانیم نظر را به نوع خدمت یا پروژه مرتبط کنیم تا کاربر بداند این بازخورد مربوط به چه کاری بوده است.</p><small>مثلاً: پمپ و آبرسانی / سرویس دوره‌ای</small></article>
+      <article><span class="ph-review-label">اعتماد بیشتر</span><p>ترکیب عکس واقعی کار، توضیح کوتاه مشکل و نظر مشتری خیلی معتبرتر از ستاره و متن عمومی است.</p><small>مدل پیشنهادی برای نسخه نهایی</small></article>
+    </div>
+  </div>
+</section>
+
 <section class="ph-section ph-guides" id="guides">
   <div class="container">
     <div class="ph-section-head"><div><span class="ph-kicker">راهنما و عیب‌یابی</span><h2>همان سؤال‌هایی که مشتری در گوگل جستجو می‌کند</h2></div><p>این صفحات برای جذب ورودی واقعی از گوگل و هدایت کاربر به برآورد آنلاین ساخته می‌شوند.</p></div>
@@ -178,7 +236,7 @@
 <section class="ph-cta" id="contact">
   <div class="container">
     <div><span>شروع سریع</span><h2>مشکل تأسیسات را انتخاب کن و برآورد اولیه بگیر.</h2></div>
-    <div class="ph-cta-actions"><a class="btn white big" href="estimate.html">شروع برآورد هزینه</a><a class="btn glass big" href="request-status.html">پیگیری درخواست قبلی</a></div>
+    <div class="ph-cta-actions"><a class="btn white big" href="estimate.html">برآورد و درخواست کارشناس</a><a class="btn glass big" href="guide.html">راهنمایی برای عیب‌یابی</a></div>
   </div>
 </section>
 </main>
@@ -192,6 +250,12 @@
   </div>
 </footer>
 
-<div class="mobile-bar"><a href="request-status.html">پیگیری</a><a href="estimate.html">برآورد هزینه</a></div>
+<div class="mobile-bar"><a href="guide.html">راهنمایی</a><a href="estimate.html">برآورد هزینه</a></div>
+<script>
+const menuBtn=document.getElementById("menuBtn"),drawer=document.getElementById("mobileDrawer"),backdrop=document.getElementById("drawerBackdrop"),menuClose=document.getElementById("menuClose");
+function setDrawer(open){drawer.classList.toggle("open",open);backdrop.classList.toggle("open",open);drawer.setAttribute("aria-hidden",String(!open));document.body.classList.toggle("menu-open",open)}
+menuBtn?.addEventListener("click",()=>setDrawer(true));menuClose?.addEventListener("click",()=>setDrawer(false));backdrop?.addEventListener("click",()=>setDrawer(false));
+drawer?.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>setDrawer(false)));
+</script>
 </body>
 </html>
