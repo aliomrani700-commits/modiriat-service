@@ -178,7 +178,7 @@
 <section class="ph-projects" id="projects">
   <div class="container">
     <div class="ph-section-head"><div><span class="ph-kicker light">پروژه‌ها</span><h2>بخش اعتمادسازی با کار واقعی شما کامل می‌شود</h2></div><p>فعلاً این تصاویر نمونه‌اند؛ در نسخه نهایی تصاویر واقعی پروژه‌های مجموعه جایگزین می‌شوند.</p></div>
-    <div class="ph-project-grid">
+    <div class="ph-project-grid" id="homeProjectGrid">
       <article class="ph-project ph-project-photo1"><div><span>آبرسانی</span><h3>اصلاح سیستم پمپ و فشار ساختمان</h3><p>تشخیص علت افت فشار و اصلاح عملکرد سیستم.</p></div></article>
       <article class="ph-project ph-project-photo2"><div><span>سرمایش</span><h3>بازدید و سرویس تجهیزات سرمایشی</h3><p>عیب‌یابی، سرویس و بررسی عملکرد تجهیزات.</p></div></article>
       <article class="ph-project ph-project-dark"><div><span>نگهداری</span><h3>قرارداد سرویس دوره‌ای ساختمان</h3><p>بازدید، ثبت سوابق و پیگیری سرویس‌های بعدی.</p></div></article>
@@ -197,7 +197,7 @@
       <div class="ph-gallery-side"><img src="https://images.pexels.com/photos/6471911/pexels-photo-6471911.jpeg?auto=compress&cs=tinysrgb&w=900" alt="نمونه جایگاه قبل و بعد"><span>قبل / بعد</span></div>
       <div class="ph-gallery-side ph-gallery-blank"><div>+ عکس‌های واقعی پروژه‌ها</div><small>بعداً از کارهای خودتان بارگذاری می‌شود</small></div>
     </div>
-    <div class="ph-review-grid">
+    <div class="ph-review-grid" id="homeReviewGrid">
       <article><span class="ph-review-label">جایگاه نظر واقعی مشتری</span><p>بعد از شروع کار، نظر مشتری با اجازه خودش در این بخش نمایش داده می‌شود؛ بدون ساختن نظر یا امتیاز جعلی.</p><small>نام و نوع خدمت پس از تأیید مشتری</small></article>
       <article><span class="ph-review-label">تجربه قابل پیگیری</span><p>می‌توانیم نظر را به نوع خدمت یا پروژه مرتبط کنیم تا کاربر بداند این بازخورد مربوط به چه کاری بوده است.</p><small>مثلاً: پمپ و آبرسانی / سرویس دوره‌ای</small></article>
       <article><span class="ph-review-label">اعتماد بیشتر</span><p>ترکیب عکس واقعی کار، توضیح کوتاه مشکل و نظر مشتری خیلی معتبرتر از ستاره و متن عمومی است.</p><small>مدل پیشنهادی برای نسخه نهایی</small></article>
@@ -256,6 +256,23 @@ const menuBtn=document.getElementById("menuBtn"),drawer=document.getElementById(
 function setDrawer(open){drawer.classList.toggle("open",open);backdrop.classList.toggle("open",open);drawer.setAttribute("aria-hidden",String(!open));document.body.classList.toggle("menu-open",open)}
 menuBtn?.addEventListener("click",()=>setDrawer(true));menuClose?.addEventListener("click",()=>setDrawer(false));backdrop?.addEventListener("click",()=>setDrawer(false));
 drawer?.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>setDrawer(false)));
+
+(function renderManagedContent(){
+  let data;try{data=JSON.parse(localStorage.getItem("tahvika_content")||"null")}catch(e){data=null}
+  const projectGrid=document.getElementById("homeProjectGrid"),reviewGrid=document.getElementById("homeReviewGrid");
+  if(data?.projects?.length && projectGrid){
+    projectGrid.innerHTML=data.projects.slice(0,3).map((x,i)=>{
+      const img=x.image?('style="background-image:url('+String(x.image).replace(/"/g,'%22')+')"'):'';
+      const extra=i===0?' ph-project-featured':'';
+      return '<article class="ph-project managed-project'+extra+'" '+img+'><div><span>'+escapeHome(x.category||"پروژه")+'</span><h3>'+escapeHome(x.title||"پروژه تأسیساتی")+'</h3><p>'+escapeHome(x.desc||"")+'</p></div></article>';
+    }).join("");
+  }
+  const approved=(data?.reviews||[]).filter(x=>x.approved==="yes").slice(0,3);
+  if(approved.length && reviewGrid){
+    reviewGrid.innerHTML=approved.map(x=>'<article><span class="ph-review-label">'+escapeHome(x.service||"نظر مشتری")+'</span><p>«'+escapeHome(x.text||"")+'»</p><small>'+escapeHome(x.name||"مشتری")+'</small></article>').join("");
+  }
+  function escapeHome(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+})();
 </script>
 </body>
 </html>
