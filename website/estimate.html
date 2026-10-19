@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>برآورد آنلاین هزینه | تهویکا</title>
-<meta name="description" content="با چند انتخاب ساده مشکل تأسیسات را مشخص کنید و برآورد اولیه هزینه بگیرید.">
+<meta name="description" content="با دو انتخاب ساده مشکل تأسیسات را مشخص کنید و برآورد اولیه هزینه بگیرید.">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body class="estimate-page">
@@ -18,47 +18,51 @@
 <main class="estimate-main">
   <div class="container estimate-shell">
     <section class="estimate-intro">
-      <span class="kicker">کارشناسی سریع آنلاین</span>
-      <h1>با چند انتخاب کوتاه، حدود هزینه را قبل از اعزام ببین</h1>
-      <p>هدف این صفحه این است که با کمترین کلیک به یک تشخیص اولیه و بازه قیمت برسید. اگر اطلاعات کافی نباشد، مسیر کارشناسی آنلاین با عکس یا ویدئو پیشنهاد می‌شود.</p>
+      <span class="kicker">برآورد سریع هزینه</span>
+      <h1>فقط دو انتخاب تا یک برآورد اولیه</h1>
+      <p>نوع سیستم را انتخاب کن، علامت اصلی خرابی را بزن و همان لحظه تشخیص احتمالی و بازه هزینه را ببین. برای موارد مبهم، عکس یا ویدئو برای کارشناس می‌فرستی.</p>
       <div class="estimate-progress"><span id="bar"></span></div>
-      <small id="stepLabel">مرحله ۱ از ۳</small>
+      <small id="stepLabel">انتخاب سیستم</small>
     </section>
 
     <section class="estimate-card" id="app">
       <div id="step1">
-        <div class="estimate-heading"><span>اول</span><h2>مشکل مربوط به کدام سیستم است؟</h2></div>
+        <div class="estimate-heading"><span>۱</span><h2>مشکل مربوط به کدام سیستم است؟</h2></div>
         <div class="system-picker">
-          <button data-type="pump"><b>💧</b><span>پمپ آب</span><small>افت فشار، صدا، قطع و وصل</small></button>
+          <button data-type="pump"><b>💧</b><span>پمپ و آبرسانی</span><small>افت فشار، صدا، قطع و وصل</small></button>
           <button data-type="cooling"><b>❄️</b><span>کولر گازی / داکت</span><small>باد گرم، آبریزش، سرمایش ضعیف</small></button>
-          <button data-type="heating"><b>♨️</b><span>پکیج / موتورخانه</span><small>افت فشار، گرمایش ضعیف، خطا</small></button>
-          <button data-type="plumbing"><b>🔧</b><span>لوله‌کشی</span><small>نشتی، افت فشار، خرابی مسیر</small></button>
+          <button data-type="central"><b>⚙️</b><span>فن‌کویل / چیلر</span><small>آبریزش، صدای فن، افت سرمایش</small></button>
+          <button data-type="heating"><b>♨️</b><span>پکیج / موتورخانه</span><small>افت فشار، گرمایش ضعیف، ارور</small></button>
+          <button data-type="floor"><b>▦</b><span>گرمایش از کف / رادیاتور</span><small>سردی مدار، هوا، عدم تعادل</small></button>
+          <button data-type="plumbing"><b>🔧</b><span>لوله‌کشی</span><small>نشتی، افت فشار، فرسودگی</small></button>
+          <button data-type="vent"><b>◌</b><span>تهویه / هواکش / کانال</span><small>صدا، لرزش، مکش ضعیف</small></button>
+          <button data-type="pool"><b>≈</b><span>استخر / تصفیه آب</span><small>گردش ضعیف، فیلتر، پمپ</small></button>
         </div>
       </div>
 
       <div id="step2" hidden>
-        <div class="estimate-heading"><span>بعد</span><h2 id="symptomTitle">کدام مورد بیشتر شبیه مشکل شماست؟</h2></div>
+        <div class="estimate-heading"><span>۲</span><h2 id="symptomTitle">کدام مورد بیشتر شبیه مشکل شماست؟</h2></div>
         <div class="symptom-picker" id="symptoms"></div>
-        <button class="btn soft estimate-back" id="back1">مرحله قبل</button>
+        <button class="btn soft estimate-back" id="back1">تغییر نوع سیستم</button>
       </div>
 
       <div id="step3" hidden>
-        <div class="estimate-heading"><span>تمام</span><h2>برآورد اولیه شما</h2></div>
+        <div class="estimate-heading"><span>نتیجه</span><h2>برآورد اولیه شما</h2></div>
         <div class="result-box">
-          <span class="result-badge">برآورد اولیه</span>
+          <span class="result-badge">برآورد اولیه — قبل از بازدید</span>
           <h3 id="diagnosis">—</h3>
           <div class="price-range" id="price">—</div>
           <p id="note">—</p>
         </div>
 
         <div class="result-actions">
-          <a class="btn primary big" href="#online-review">ارسال عکس برای کارشناسی دقیق‌تر</a>
-          <a class="btn soft big" href="#dispatch">درخواست اعزام کارشناس</a>
+          <a class="btn primary big" id="reviewLink" href="online-review.html">ارسال عکس / ویدئو برای بررسی دقیق‌تر</a>
+          <a class="btn soft big" href="online-review.html?mode=dispatch">درخواست اعزام کارشناس</a>
         </div>
 
         <div class="expert-options">
-          <div id="online-review"><b>کارشناسی آنلاین</b><p>در نسخه نهایی مشتری می‌تواند عکس یا ویدئو بفرستد تا کارشناس بازه هزینه را دقیق‌تر اعلام کند.</p></div>
-          <div id="dispatch"><b>اعزام کارشناس</b><p>اگر مشتری برآورد را پذیرفت، آدرس و زمان مناسب را ثبت می‌کند و درخواست اعزام ساخته می‌شود.</p></div>
+          <div><b>کارشناسی آنلاین</b><p>عکس، ویدئو، مدل دستگاه یا کد خطا را ارسال می‌کنی تا برآورد دقیق‌تر شود.</p></div>
+          <div><b>اعزام حضوری</b><p>اگر همین برآورد مناسب بود، مشخصات و زمان حضور را ثبت می‌کنی.</p></div>
         </div>
 
         <button class="btn soft estimate-back" id="restart">شروع دوباره</button>
@@ -66,56 +70,71 @@
     </section>
 
     <section class="estimate-note">
-      <b>چرا قیمت قطعی نیست؟</b>
-      <p>در تأسیسات، خرابی‌های مختلف می‌توانند علامت مشابه داشته باشند. این سیستم برای برآورد سریع طراحی می‌شود؛ قیمت نهایی بعد از اطلاعات کامل‌تر یا بازدید مشخص خواهد شد.</p>
+      <b>نکته درباره قیمت‌ها</b>
+      <p>مبالغ این نسخه نمونه‌اند و قبل از انتشار عمومی باید با تعرفه و تجربه واقعی مجموعه شما تنظیم شوند. هدف سیستم، دادن یک بازه منطقی و جلوگیری از قیمت‌های کلی و گمراه‌کننده است.</p>
     </section>
   </div>
 </main>
 
 <script>
 const flows={
- pump:{
-  title:"مشکل پمپ آب کدام است؟",
-  symptoms:[
-   {label:"فشار آب کم شده",diagnosis:"احتمال ایراد در پمپ، منبع تحت فشار یا تنظیم فشار",price:"حدود ۱.۵ تا ۴ میلیون تومان",note:"اگر پمپ روشن است ولی فشار کم است، بررسی منبع، تنظیمات و مسیر آب لازم است."},
-   {label:"پمپ مدام قطع و وصل می‌شود",diagnosis:"احتمال مشکل منبع تحت فشار، تیوپ یا کلید فشار",price:"حدود ۱ تا ۳.۵ میلیون تومان",note:"بسته به سالم بودن منبع و قطعات کنترلی، هزینه می‌تواند متفاوت باشد."},
-   {label:"پمپ صدای غیرعادی دارد",diagnosis:"احتمال بلبرینگ، سیل مکانیکی یا ایراد مکانیکی پمپ",price:"حدود ۲ تا ۵ میلیون تومان",note:"ارسال ویدئو از صدای پمپ می‌تواند تشخیص آنلاین را دقیق‌تر کند."},
-   {label:"پمپ روشن نمی‌شود",diagnosis:"احتمال ایراد برق، خازن، کلید فشار یا موتور پمپ",price:"حدود ۱ تا ۵ میلیون تومان",note:"برای تشخیص دقیق‌تر، مدل پمپ و وضعیت برق ورودی مهم است."}
-  ]
- },
- cooling:{
-  title:"مشکل سیستم سرمایش کدام است؟",
-  symptoms:[
-   {label:"باد گرم می‌زند",diagnosis:"احتمال کمبود گاز، نشتی، کندانسور یا کمپرسور",price:"حدود ۲ تا ۸ میلیون تومان",note:"هزینه وابسته به علت کمبود سرمایش و نیاز یا عدم نیاز به قطعه است."},
-   {label:"آبریزش دارد",diagnosis:"احتمال گرفتگی درین، عایق یا یخ‌زدگی پنل",price:"حدود ۱ تا ۳ میلیون تومان",note:"در بسیاری از موارد با اصلاح درین و سرویس قابل رفع است."},
-   {label:"سرمایش ضعیف است",diagnosis:"احتمال کثیفی، کمبود گاز یا افت راندمان",price:"حدود ۱.۵ تا ۶ میلیون تومان",note:"ارسال عکس پنل و یونیت خارجی می‌تواند برآورد را بهتر کند."},
-   {label:"اصلاً روشن نمی‌شود",diagnosis:"احتمال خازن، برق، برد یا موتور فن",price:"حدود ۱.۵ تا ۷ میلیون تومان",note:"مدل دستگاه و علائم قبل از خاموشی در تشخیص مؤثر است."}
-  ]
- },
- heating:{
-  title:"مشکل پکیج یا موتورخانه کدام است؟",
-  symptoms:[
-   {label:"فشار سیستم کم می‌شود",diagnosis:"احتمال نشتی، منبع انبساط یا شیر اطمینان",price:"حدود ۱ تا ۴ میلیون تومان",note:"محل نشتی و وضعیت منبع انبساط روی هزینه اثر دارد."},
-   {label:"گرمایش ضعیف است",diagnosis:"احتمال هوا، رسوب، پمپ یا تنظیم نبودن مدار",price:"حدود ۱.۵ تا ۵ میلیون تومان",note:"برای ساختمان‌های بزرگ، وضعیت پمپ‌ها و بالانس مدار هم بررسی می‌شود."},
-   {label:"ارور یا خاموشی دارد",diagnosis:"احتمال سنسور، فن، پرشر یا برد",price:"حدود ۱.۵ تا ۸ میلیون تومان",note:"کد خطا یا عکس نمایشگر تشخیص آنلاین را خیلی دقیق‌تر می‌کند."},
-   {label:"صدای غیرعادی دارد",diagnosis:"احتمال پمپ، فن یا رسوب مدار",price:"حدود ۱.۵ تا ۵ میلیون تومان",note:"ویدئوی صدا برای کارشناسی آنلاین بسیار مفید است."}
-  ]
- },
- plumbing:{
-  title:"مشکل لوله‌کشی کدام است؟",
-  symptoms:[
-   {label:"نشتی مشخص دارم",diagnosis:"احتمال خرابی اتصال، شیر یا بخش موضعی لوله",price:"حدود ۱ تا ۴ میلیون تومان",note:"دسترسی به محل نشتی و نیاز به تخریب روی قیمت اثر مستقیم دارد."},
-   {label:"افت فشار دارم",diagnosis:"احتمال گرفتگی، نشتی پنهان یا ایراد مسیر",price:"حدود ۱.۵ تا ۵ میلیون تومان",note:"برای تشخیص باید محل و گستره افت فشار مشخص شود."},
-   {label:"لوله فرسوده است",diagnosis:"احتمال نیاز به تعویض موضعی یا بازسازی مسیر",price:"نیاز به کارشناسی دقیق‌تر",note:"این مورد بدون دیدن مسیر و متراژ، قیمت قابل اتکایی ندارد."},
-   {label:"نمی‌دانم مشکل دقیق چیست",diagnosis:"نیاز به کارشناسی آنلاین یا بازدید",price:"پس از بررسی عکس/ویدئو",note:"می‌توانید عکس یا ویدئو بفرستید تا قبل از اعزام، تشخیص اولیه انجام شود."}
-  ]
- }
+pump:{title:"مشکل پمپ و آبرسانی کدام است؟",symptoms:[
+{label:"فشار آب کم شده",diagnosis:"احتمال ایراد در پمپ، منبع تحت فشار یا تنظیم فشار",price:"نمونه: حدود ۱.۵ تا ۴ میلیون تومان",note:"اگر پمپ روشن است ولی فشار کم است، بررسی منبع، تنظیمات و مسیر آب لازم است."},
+{label:"پمپ مدام قطع و وصل می‌شود",diagnosis:"احتمال مشکل منبع تحت فشار، تیوپ یا کلید فشار",price:"نمونه: حدود ۱ تا ۳.۵ میلیون تومان",note:"بسته به سالم بودن منبع و قطعات کنترلی، هزینه متفاوت است."},
+{label:"پمپ صدای غیرعادی دارد",diagnosis:"احتمال بلبرینگ، سیل مکانیکی یا ایراد مکانیکی پمپ",price:"نمونه: حدود ۲ تا ۵ میلیون تومان",note:"ارسال ویدئو از صدای پمپ برای تشخیص آنلاین خیلی مفید است."},
+{label:"پمپ روشن نمی‌شود",diagnosis:"احتمال ایراد برق، خازن، کلید فشار یا موتور پمپ",price:"نمونه: حدود ۱ تا ۵ میلیون تومان",note:"مدل پمپ و وضعیت برق ورودی برای تشخیص مهم است."}
+]},
+cooling:{title:"مشکل کولر گازی یا داکت اسپلیت کدام است؟",symptoms:[
+{label:"باد گرم می‌زند",diagnosis:"احتمال کمبود گاز، نشتی، کندانسور یا کمپرسور",price:"نمونه: حدود ۲ تا ۸ میلیون تومان",note:"هزینه به علت اصلی و نیاز یا عدم نیاز به قطعه بستگی دارد."},
+{label:"آبریزش دارد",diagnosis:"احتمال گرفتگی درین، عایق یا یخ‌زدگی پنل",price:"نمونه: حدود ۱ تا ۳ میلیون تومان",note:"در بسیاری از موارد با اصلاح درین و سرویس قابل رفع است."},
+{label:"سرمایش ضعیف است",diagnosis:"احتمال کثیفی، کمبود گاز یا افت راندمان",price:"نمونه: حدود ۱.۵ تا ۶ میلیون تومان",note:"عکس پنل و یونیت خارجی می‌تواند برآورد را دقیق‌تر کند."},
+{label:"اصلاً روشن نمی‌شود",diagnosis:"احتمال خازن، برق، برد یا موتور فن",price:"نمونه: حدود ۱.۵ تا ۷ میلیون تومان",note:"مدل دستگاه و علائم قبل از خاموشی مهم است."}
+]},
+central:{title:"مشکل فن‌کویل یا سیستم مرکزی کدام است؟",symptoms:[
+{label:"فن‌کویل آب می‌دهد",diagnosis:"احتمال گرفتگی درین، نشتی کویل یا ایراد سینی",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"عکس محل آبریزش و زیر دستگاه برای بررسی آنلاین مفید است."},
+{label:"باد کم یا سرمایش ضعیف است",diagnosis:"احتمال کثیفی کویل، فن، شیر برقی یا مدار",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"برای سیستم مرکزی، وضعیت آب رفت و برگشت هم مهم است."},
+{label:"فن صدای غیرعادی دارد",diagnosis:"احتمال موتور فن، بلبرینگ یا بالانس",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"ویدئوی صدا تشخیص را دقیق‌تر می‌کند."},
+{label:"چیلر یا مدار مرکزی ضعیف شده",diagnosis:"نیاز به بررسی پمپ‌ها، مبدل و مدار سرمایش",price:"نیاز به کارشناسی آنلاین یا حضوری",note:"برای این مورد برآورد بدون اطلاعات فنی بیشتر قابل اتکا نیست."}
+]},
+heating:{title:"مشکل پکیج یا موتورخانه کدام است؟",symptoms:[
+{label:"فشار سیستم کم می‌شود",diagnosis:"احتمال نشتی، منبع انبساط یا شیر اطمینان",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"محل نشتی و وضعیت منبع انبساط روی هزینه اثر دارد."},
+{label:"گرمایش ضعیف است",diagnosis:"احتمال هوا، رسوب، پمپ یا تنظیم نبودن مدار",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"در ساختمان بزرگ، وضعیت پمپ‌ها و بالانس مدار هم بررسی می‌شود."},
+{label:"ارور یا خاموشی دارد",diagnosis:"احتمال سنسور، فن، پرشر یا برد",price:"نمونه: حدود ۱.۵ تا ۸ میلیون تومان",note:"عکس کد خطا تشخیص آنلاین را خیلی دقیق‌تر می‌کند."},
+{label:"صدای غیرعادی دارد",diagnosis:"احتمال پمپ، فن یا رسوب مدار",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"ویدئوی صدا برای بررسی آنلاین مفید است."}
+]},
+floor:{title:"مشکل گرمایش از کف یا رادیاتور کدام است؟",symptoms:[
+{label:"بخشی از کف سرد است",diagnosis:"احتمال هوا، دبی نامتعادل، گرفتگی یا ایراد کلکتور",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"عکس کلکتور و تعداد مدارها به برآورد کمک می‌کند."},
+{label:"یک رادیاتور گرم نمی‌شود",diagnosis:"احتمال هوا، شیر، گرفتگی یا بالانس نبودن",price:"نمونه: حدود ۸۰۰ هزار تا ۳ میلیون تومان",note:"در بسیاری از موارد با هواگیری یا بالانس رفع می‌شود."},
+{label:"کل سیستم ضعیف گرم می‌کند",diagnosis:"احتمال مشکل پمپ، دمای رفت یا تنظیم مدار",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"منبع گرمایش و دمای آب رفت باید بررسی شود."},
+{label:"نشتی در کلکتور یا شیرها دارم",diagnosis:"احتمال خرابی شیر، اورینگ یا اتصال",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"عکس واضح محل نشتی برای برآورد لازم است."}
+]},
+plumbing:{title:"مشکل لوله‌کشی کدام است؟",symptoms:[
+{label:"نشتی مشخص دارم",diagnosis:"احتمال خرابی اتصال، شیر یا بخش موضعی لوله",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"دسترسی به محل نشتی و نیاز به تخریب روی قیمت اثر مستقیم دارد."},
+{label:"افت فشار دارم",diagnosis:"احتمال گرفتگی، نشتی پنهان یا ایراد مسیر",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"محل و گستره افت فشار باید مشخص شود."},
+{label:"لوله فرسوده است",diagnosis:"احتمال نیاز به تعویض موضعی یا بازسازی مسیر",price:"نیاز به کارشناسی دقیق‌تر",note:"این مورد بدون دیدن مسیر و متراژ، قیمت قابل اتکا ندارد."},
+{label:"نمی‌دانم مشکل دقیق چیست",diagnosis:"نیاز به کارشناسی آنلاین یا بازدید",price:"پس از بررسی عکس / ویدئو",note:"عکس یا ویدئو بفرست تا قبل از اعزام تشخیص اولیه انجام شود."}
+]},
+vent:{title:"مشکل تهویه یا هواکش کدام است؟",symptoms:[
+{label:"هواکش صدای زیادی دارد",diagnosis:"احتمال یاتاقان، بالانس فن یا انتقال لرزش",price:"نمونه: حدود ۱ تا ۴ میلیون تومان",note:"ویدئوی صدا و لرزش برای تشخیص مفید است."},
+{label:"مکش ضعیف است",diagnosis:"احتمال گرفتگی، افت کانال، فن ضعیف یا دمپر",price:"نمونه: حدود ۱.۵ تا ۵ میلیون تومان",note:"مسیر کانال و نوع فن روی برآورد اثر دارد."},
+{label:"فن روشن نمی‌شود",diagnosis:"احتمال برق، خازن، موتور یا کنترل",price:"نمونه: حدود ۱ تا ۵ میلیون تومان",note:"مدل فن و تابلو کنترل در تشخیص مهم است."},
+{label:"نشتی هوا یا مشکل کانال دارم",diagnosis:"احتمال خرابی اتصال، عایق یا دمپر",price:"نیاز به عکس و متراژ",note:"برای قیمت دقیق‌تر، عکس و حدود طول مسیر کانال لازم است."}
+]},
+pool:{title:"مشکل استخر یا تصفیه آب کدام است؟",symptoms:[
+{label:"گردش آب ضعیف شده",diagnosis:"احتمال فیلتر، پمپ، هوا یا تنظیم شیرها",price:"نمونه: حدود ۱.۵ تا ۶ میلیون تومان",note:"فشار گیج و وضعیت فیلتر به تشخیص کمک می‌کند."},
+{label:"پمپ تصفیه صدا می‌دهد",diagnosis:"احتمال بلبرینگ، هوا یا ایراد مکانیکی",price:"نمونه: حدود ۲ تا ۶ میلیون تومان",note:"ویدئوی صدا برای بررسی آنلاین مناسب است."},
+{label:"فیلتر خوب کار نمی‌کند",diagnosis:"احتمال گرفتگی، مدیا یا بک‌واش نامناسب",price:"نمونه: حدود ۱ تا ۵ میلیون تومان",note:"نوع فیلتر و فشار قبل و بعد از سرویس مهم است."},
+{label:"دستگاه تصفیه آب افت فشار دارد",diagnosis:"احتمال فیلترها، پمپ یا مخزن",price:"نمونه: حدود ۵۰۰ هزار تا ۳ میلیون تومان",note:"مدل دستگاه و زمان آخرین تعویض فیلتر کمک‌کننده است."}
+]}
 };
 
-let selectedType=null;
+let selectedType=null, selectedSymptom=null;
 const step1=document.getElementById("step1"),step2=document.getElementById("step2"),step3=document.getElementById("step3");
 const bar=document.getElementById("bar"),label=document.getElementById("stepLabel"),symptoms=document.getElementById("symptoms");
-function setProgress(n){bar.style.width=(n*33.33)+"%";label.textContent="مرحله "+n+" از ۳";}
+function setProgress(n){
+  bar.style.width=n===1?"50%":"100%";
+  label.textContent=n===1?"انتخاب سیستم":"انتخاب علامت خرابی";
+}
 function selectType(type){
  selectedType=type; const f=flows[type];
  step1.hidden=true;step2.hidden=false;step3.hidden=true;
@@ -125,15 +144,17 @@ function selectType(type){
  setProgress(2);
 }
 function showResult(i){
+ selectedSymptom=i;
  const s=flows[selectedType].symptoms[i];
  step2.hidden=true;step3.hidden=false;
- diagnosis.textContent=s.diagnosis;price.textContent=s.price;note.textContent=s.note;setProgress(3);
+ diagnosis.textContent=s.diagnosis;price.textContent=s.price;note.textContent=s.note;
+ reviewLink.href="online-review.html?type="+encodeURIComponent(selectedType)+"&symptom="+i;
+ bar.style.width="100%"; label.textContent="برآورد آماده است";
 }
 document.querySelectorAll("[data-type]").forEach(btn=>btn.onclick=()=>selectType(btn.dataset.type));
 back1.onclick=()=>{step2.hidden=true;step1.hidden=false;setProgress(1)};
 restart.onclick=()=>{step3.hidden=true;step1.hidden=false;setProgress(1)};
-const q=new URLSearchParams(location.search).get("type");if(q&&flows[q])selectType(q);
-setProgress(q&&flows[q]?2:1);
+const q=new URLSearchParams(location.search).get("type");if(q&&flows[q])selectType(q);else setProgress(1);
 </script>
 </body>
 </html>
