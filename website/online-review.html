@@ -6,23 +6,25 @@
 <meta name="description" content="ارسال عکس یا ویدئو برای کارشناسی آنلاین و برآورد دقیق‌تر هزینه تأسیسات.">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body class="estimate-page">
-<header class="header">
-  <div class="container nav">
-    <a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>تأسیسات ساختمان</small></span></a>
-    <nav><a href="estimate.html">برآورد آنلاین</a><a href="index.html#services">خدمات</a></nav>
-    <a class="btn soft" href="estimate.html">بازگشت</a>
+<body class="estimate-page premium-tool-page review-page">
+<header class="ph-header">
+  <div class="container ph-nav">
+    <a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>کارشناسی آنلاین</small></span></a>
+    <nav><a href="estimate.html" class="ph-hot">برآورد آنلاین</a><a href="guide.html">راهنمای عیب‌یابی</a><a href="request-status.html">پیگیری درخواست</a></nav>
+    <a class="btn soft" href="estimate.html">بازگشت به برآورد</a>
   </div>
 </header>
 
 <main class="estimate-main">
 <div class="container estimate-shell">
-  <section class="estimate-intro">
+  <section class="estimate-intro review-intro">
     <span class="kicker">مرحله تکمیلی</span>
     <h1 id="pageTitle">کارشناسی آنلاین با عکس یا ویدئو</h1>
     <p id="pageLead">اگر برآورد خودکار برای تصمیم‌گیری کافی نیست، چند اطلاعات کوتاه و تصویر یا ویدئو بفرست تا کارشناس بررسی دقیق‌تری انجام دهد.</p>
+    <div class="review-benefits"><span>ارسال عکس و ویدئو</span><span>بررسی قبل از اعزام</span><span>دریافت کد پیگیری</span></div>
   </section>
 
+  <div class="review-layout">
   <section class="estimate-card review-card">
     <div class="review-summary">
       <span>اطلاعات برآورد قبلی</span>
@@ -34,8 +36,9 @@
         <label><span>نام و نام خانوادگی</span><input id="name" required placeholder="مثلاً علی رضایی"></label>
         <label><span>شماره تماس</span><input id="phone" required inputmode="tel" placeholder="09xxxxxxxxx"></label>
         <label class="full"><span>توضیح کوتاه مشکل</span><textarea id="description" rows="4" placeholder="مثلاً پمپ روشن می‌شود ولی فشار طبقه سوم ضعیف است..."></textarea></label>
-        <label class="full upload-box">
+        <label class="full upload-box premium-upload">
           <span>عکس یا ویدئو</span>
+          <div class="upload-visual"><b>＋</b><strong>فایل‌ها را انتخاب کن</strong><small>عکس دستگاه، نشتی، کد خطا یا یک ویدئوی کوتاه از صدا و عملکرد</small></div>
           <input id="files" type="file" accept="image/*,video/*" multiple>
           <small>در این نسخه آزمایشی فقط نام فایل‌ها ذخیره می‌شود. در نسخه آنلاین فایل واقعی روی سرور قرار می‌گیرد.</small>
           <div id="fileNames" class="file-names"></div>
@@ -56,7 +59,22 @@
     </form>
   </section>
 
-  <section class="estimate-note">
+  <aside class="review-side">
+    <div class="review-side-card dark">
+      <span>چه چیزی بفرستی بهتره؟</span>
+      <h3>هر چیزی که تشخیص را دقیق‌تر کند.</h3>
+      <div><b>عکس کلی</b><small>از دستگاه، اتصالات یا محل نشتی</small></div>
+      <div><b>ویدئو کوتاه</b><small>برای صدا، لرزش، قطع و وصل یا آبریزش</small></div>
+      <div><b>مدل یا کد خطا</b><small>اگر روی دستگاه قابل مشاهده است</small></div>
+    </div>
+    <div class="review-side-card">
+      <b>بعد از ارسال چه می‌شود؟</b>
+      <p>در نسخه واقعی، درخواست وارد پنل کارشناس می‌شود؛ بعد از بررسی، بازه هزینه و توضیح برای مشتری ثبت می‌شود و مشتری می‌تواند همان‌جا اعزام را تأیید کند.</p>
+    </div>
+  </aside>
+  </div>
+
+  <section class="estimate-note review-process-note">
     <b>مسیر نهایی مشتری</b>
     <p>برآورد خودکار ← ارسال عکس/ویدئو در صورت نیاز ← اعلام بازه دقیق‌تر توسط کارشناس ← تأیید مشتری ← ثبت اعزام.</p>
   </section>
@@ -73,6 +91,7 @@ if(mode==="dispatch"){
   submitBtn.textContent="ثبت درخواست اعزام";
 }
 summaryText.textContent=type&&names[type] ? "سیستم انتخاب‌شده: "+names[type] : "این درخواست بدون برآورد قبلی ثبت می‌شود.";
+if(type&&names[type]) description.placeholder="علائم، زمان شروع مشکل و هر چیزی که به تشخیص "+names[type]+" کمک می‌کند...";
 
 files.addEventListener("change",()=>{
   const list=[...files.files].map(f=>f.name);
