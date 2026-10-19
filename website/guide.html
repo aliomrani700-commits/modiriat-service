@@ -2,129 +2,116 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>راهنمای عیب‌یابی تأسیسات | تهویکا</title>
-<meta name="description" content="راهنمای مرحله‌ای برای بررسی مشکلات ساده تأسیسات و تشخیص زمان مناسب برای درخواست سرویس‌کار.">
+<title>راهنمای فنی و کدهای خطا | تهویکا</title>
+<meta name="description" content="راهنمای مدل‌محور کدهای خطا و مشکلات رایج پکیج، کولر گازی و تجهیزات تأسیسات با امکان گفت‌وگو با کارشناس.">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body class="guide-page">
-<header class="ph-header">
-  <div class="container ph-nav">
-    <a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>راهنمای عیب‌یابی</small></span></a>
-    <nav><a href="estimate.html" class="ph-hot">برآورد هزینه</a><a href="index.html#services">خدمات</a><a href="request-status.html">پیگیری درخواست</a></nav>
-    <a class="btn primary" href="estimate.html">درخواست کارشناس</a>
-  </div>
-</header>
+<header class="ph-header"><div class="container ph-nav">
+<a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>راهنمای فنی و کدهای خطا</small></span></a>
+<nav><a href="estimate.html" class="ph-hot">برآورد هزینه</a><a href="all-services.html">خدمات</a><a href="request-status.html">پیگیری درخواست</a></nav>
+<a class="btn primary" href="online-review.html">گفت‌وگو با کارشناس</a>
+</div></header>
 
 <main>
-<section class="guide-hero">
+<section class="guide-hero guide-hero-v2">
   <div class="container guide-hero-grid">
     <div>
-      <span class="ph-kicker">راهنمایی قبل از سرویس</span>
-      <h1>اول ببین مشکل ساده و قابل بررسیه یا نیاز به کارشناس داره.</h1>
-      <p>این بخش از قیمت‌گیری جداست. اگر فقط دنبال راهنمایی هستی، سیستم با چند سؤال کوتاه مسیر بررسی بی‌خطر را پیشنهاد می‌دهد. هر جا احتمال خطر یا نیاز به ابزار تخصصی باشد، ادامه کار متوقف و ارجاع به متخصص پیشنهاد می‌شود.</p>
-      <div class="guide-hero-actions"><a class="btn primary big" href="#start">شروع راهنمایی</a><a class="btn soft big" href="estimate.html">من مستقیم سرویس‌کار می‌خوام</a></div>
+      <span class="ph-kicker">راهنمای فنی واقعی، نه حدس عمومی</span>
+      <h1>برند، مدل و کد خطا را مشخص کنید؛ بعد راهنمای درست را ببینید.</h1>
+      <p>کدهای خطا بین برندها و حتی بین سری‌های یک برند یکسان نیستند. برای همین این بخش از این به بعد بر اساس مدل دقیق دستگاه، دفترچه و منابع فنی نوشته می‌شود.</p>
+      <div class="guide-search">
+        <input id="guideSearch" placeholder="مثلاً: ایران رادیاتور L24FF E1 یا بوتان E01">
+        <button class="btn primary" id="guideSearchBtn">جستجو در راهنماها</button>
+      </div>
+      <div class="guide-search-hints"><span>ایران رادیاتور L24FF</span><span>بوتان Perla Pro</span><span>Gree</span><span>Midea</span></div>
     </div>
     <div class="guide-safety-card">
       <span>مرز ایمنی</span>
-      <h3>همه چیز قرار نیست DIY باشد.</h3>
-      <p>برق، گاز، فشار بالا، باز کردن برد، کمپرسور، مشعل یا قطعاتی که نیاز به ابزار تخصصی دارند، مستقیماً به کارشناس ارجاع داده می‌شوند.</p>
-      <b>هدف: راهنمایی مفید، نه ریسک اضافه.</b>
+      <h3>راهنما قرار نیست مشتری را تعمیرکار کند.</h3>
+      <p>بررسی‌های ساده مثل خواندن فشار، مدل دستگاه یا ثبت عکس و کد خطا قابل راهنمایی است. باز کردن مسیر گاز، برد، کمپرسور، مشعل، قطعات فشار بالا و اندازه‌گیری‌های تخصصی برای سرویس‌کار می‌ماند.</p>
+      <b>هدف: تشخیص بهتر + تصمیم درست‌تر + اعزام کمترِ بی‌نتیجه.</b>
     </div>
   </div>
 </section>
 
-<section class="guide-start" id="start">
+<section class="guide-models">
 <div class="container">
-  <div class="ph-section-head"><div><span class="ph-kicker">انتخاب مشکل</span><h2>کدوم سیستم اذیتت می‌کنه؟</h2></div><p>برای نمونه، مسیرهای زیر راهنمایی را از درخواست سرویس جدا نگه می‌دارند.</p></div>
-  <div class="guide-topic-grid">
-    <button data-topic="pump"><b>💧</b><span>پمپ و فشار آب</span><small>فشار کم، قطع و وصل، هوا</small></button>
-    <button data-topic="cooling"><b>❄️</b><span>کولر گازی / داکت</span><small>سرمایش ضعیف، آبریزش</small></button>
-    <button data-topic="central"><b>⚙️</b><span>فن‌کویل / چیلر</span><small>آبریزش، صدا، افت سرمایش</small></button>
-    <button data-topic="heating"><b>♨️</b><span>پکیج / موتورخانه</span><small>فشار، گرمایش، ارور</small></button>
-    <button data-topic="floor"><b>▦</b><span>گرمایش از کف / رادیاتور</span><small>سردی مدار، هوا، بالانس</small></button>
-    <button data-topic="plumbing"><b>🔧</b><span>لوله‌کشی</span><small>نشتی و افت فشار</small></button>
-    <button data-topic="vent"><b>◌</b><span>تهویه / هواکش</span><small>صدا، لرزش، مکش ضعیف</small></button>
-    <button data-topic="pool"><b>≈</b><span>استخر / تصفیه آب</span><small>گردش، فیلتر، پمپ</small></button>
-  </div>
-
-  <div class="guide-flow-card" id="guideFlow" hidden>
-    <div class="guide-flow-head"><span id="guideTopic">—</span><button id="guideReset">تغییر سیستم</button></div>
-    <div id="guideQuestion"></div>
+  <div class="ph-section-head"><div><span class="ph-kicker">برند و مدل</span><h2>از خود دستگاه شروع می‌کنیم</h2></div><p>هر کارت به راهنمای همان خانواده محصول می‌رود؛ معنی کدها بدون مدل دقیق تعمیم داده نمی‌شود.</p></div>
+  <div class="guide-brand-grid">
+    <a class="guide-brand-card" data-search="ایران رادیاتور l24ff سری l e1" href="guides/iran-radiator-l24ff-e1.html">
+      <img src="https://damapishro.com/wp-content/uploads/2022/12/iran-radiator-boiler-model-l24ff.webp" alt="پکیج ایران رادیاتور L24FF">
+      <div><span>پکیج</span><h3>ایران رادیاتور — L24FF / سری L</h3><p>E1، E2، E8، E31، E32، E41، E42، E50، E51 و...</p></div>
+    </a>
+    <a class="guide-brand-card" data-search="بوتان perla pro پرلا e01 e02 e03 e04" href="guides/butane-perla-pro-e01.html">
+      <img src="https://storage-hetzner-s3.damatajhiz.com/ultimate-cms-final/img/img/p/9/0/8/8/9088.jpg" alt="پکیج بوتان Perla Pro">
+      <div><span>پکیج</span><h3>بوتان — Perla Pro</h3><p>E01، E02، E03، E04، E06، E07، E11</p></div>
+    </a>
+    <a class="guide-brand-card" data-search="gree گری pular f1 f2 f4 h3 کولر گازی" href="guides/gree-error-codes.html">
+      <img src="https://global.gree.com/upload/images/2021/5/s_a874693306569c5e.jpg" alt="کولر گازی Gree Pular">
+      <div><span>کولر گازی</span><h3>Gree — سری‌های دیواری</h3><p>کدهای سنسور، حفاظت و خطا بر اساس سری دستگاه</p></div>
+    </a>
+    <a class="guide-brand-card" data-search="midea میدیا کولر گازی e1 ec el01 error" href="guides/midea-error-codes.html">
+      <div class="guide-brand-image-placeholder">Midea</div>
+      <div><span>کولر گازی</span><h3>Midea — راهنمای مدل‌محور</h3><p>مثال روشن از اینکه E1 در همه سری‌ها معنی یکسان ندارد.</p></div>
+    </a>
   </div>
 </div>
 </section>
 
-<section class="guide-library">
+<section class="guide-library guide-library-v2">
 <div class="container">
-  <div class="ph-section-head"><div><span class="ph-kicker">مطالب کاربردی</span><h2>جواب کوتاه برای سؤال‌های واقعی</h2></div><p>بعداً این بخش با مقاله‌ها و راهنماهای واقعی مجموعه توسعه پیدا می‌کند و برای گوگل هم ارزش سئویی دارد.</p></div>
-  <div class="guide-article-grid">
-    <article><span>پمپ آب</span><h3>پمپ مدام قطع و وصل می‌شود؛ اول چی را بررسی کنم؟</h3><p>چند بررسی ساده و بی‌خطر قبل از تماس با سرویس‌کار.</p><a href="services/pump-water.html#faq">مطالعه راهنما ←</a></article>
-    <article><span>کولر گازی</span><h3>آبریزش پنل همیشه یعنی خرابی جدی است؟</h3><p>بررسی درین، فیلتر و نشانه‌هایی که نیاز به متخصص دارند.</p><a href="services/air-conditioning.html#faq">مطالعه راهنما ←</a></article>
-    <article><span>گرمایش</span><h3>رادیاتور نصفه گرم است؛ هواگیری کافی است؟</h3><p>علت‌های رایج و زمان مناسب برای درخواست سرویس.</p><a href="services/heating-boiler-package.html#faq">مطالعه راهنما ←</a></article>
+  <div class="ph-section-head"><div><span class="ph-kicker">مقاله‌های فنی</span><h2>هر مقاله با یک کد و مدل مشخص</h2></div><p>پایین هر مقاله، کاربر می‌تواند همان خطا را با عکس و ویدئو برای کارشناس بفرستد و مکالمه را از همان موضوع شروع کند.</p></div>
+  <div class="guide-article-grid" id="guideArticleGrid">
+    <article data-search="ایران رادیاتور l24ff e1 فشار آب پرشر سوئیچ">
+      <span>ایران رادیاتور L24FF</span><h3>ارور E1؛ فشار مدار یا پرشر سوئیچ آب؟</h3>
+      <p>معنی خطا، چیزهایی که کاربر می‌تواند بی‌خطر بررسی کند و چه زمانی نیاز به سرویس‌کار است.</p>
+      <a href="guides/iran-radiator-l24ff-e1.html">مطالعه راهنما ←</a>
+    </article>
+    <article data-search="بوتان perla pro e01 شعله شیر گاز جرقه یون">
+      <span>بوتان Perla Pro</span><h3>ارور E01؛ چرا شعله تشکیل نمی‌شود؟</h3>
+      <p>تفکیک بررسی‌های ساده کاربر از مواردی که مربوط به جرقه‌زن، یون، شیر گاز یا برد است.</p>
+      <a href="guides/butane-perla-pro-e01.html">مطالعه راهنما ←</a>
+    </article>
+    <article data-search="گری gree f1 f2 f4 h3 sensor error">
+      <span>Gree</span><h3>کدهای F1، F2، F4 و H3 در راهنمای رسمی گری</h3>
+      <p>چرا قبل از تفسیر کد، سری دستگاه باید مشخص شود و کدام کدها در منابع رسمی آمده‌اند.</p>
+      <a href="guides/gree-error-codes.html">مطالعه راهنما ←</a>
+    </article>
+    <article data-search="میدیا midea e1 el01 ec communication refrigerant error">
+      <span>Midea</span><h3>چرا E1 میدیا بدون مدل دقیق قابل تفسیر نیست؟</h3>
+      <p>مقایسه دو نسل راهنمای رسمی و تفاوت نام‌گذاری خطاها.</p>
+      <a href="guides/midea-error-codes.html">مطالعه راهنما ←</a>
+    </article>
   </div>
 </div>
 </section>
 
-<section class="ph-cta">
-  <div class="container"><div><span>اگر نخواستی خودت بررسی کنی</span><h2>مستقیم برآورد بگیر و درخواست کارشناس ثبت کن.</h2></div><div class="ph-cta-actions"><a class="btn white big" href="estimate.html">برآورد و درخواست سرویس</a></div></div>
+<section class="guide-chat-bridge">
+<div class="container">
+  <div><span class="ph-kicker light">از مقاله به مکالمه</span><h2>کد را پیدا کردی ولی هنوز مطمئن نیستی؟</h2><p>عکس نمایشگر، مدل دستگاه و یک ویدئوی کوتاه بفرست تا مکالمه کارشناس از همان اطلاعات شروع شود؛ لازم نیست دوباره همه‌چیز را از اول توضیح بدهی.</p></div>
+  <a class="btn white big" href="online-review.html?source=guide">شروع گفت‌وگو با کارشناس</a>
+</div>
 </section>
 </main>
 
+<footer class="ph-footer"><div class="container ph-footer-grid">
+<div><a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>نام موقت پروژه</small></span></a><p>راهنمای فنی مدل‌محور، برآورد هزینه و درخواست خدمات تأسیسات.</p></div>
+<div><b>راهنما</b><a href="guides/iran-radiator-l24ff-e1.html">ایران رادیاتور</a><a href="guides/butane-perla-pro-e01.html">بوتان</a></div>
+<div><b>سرمایش</b><a href="guides/gree-error-codes.html">Gree</a><a href="guides/midea-error-codes.html">Midea</a></div>
+<div><b>اقدام</b><a href="estimate.html">برآورد آنلاین</a><a href="online-review.html">کارشناسی آنلاین</a></div>
+</div></footer>
+
 <script>
-const flows={
-pump:[
- {q:"آیا پمپ روشن می‌شود؟",yes:1,no:"اگر پمپ روشن نمی‌شود، سراغ باز کردن موتور یا قطعات برقی نرو. برق ورودی و کلید اصلی را فقط از بیرون بررسی کن و برای خازن، سیم‌کشی یا موتور درخواست کارشناس بده."},
- {q:"فقط فشار آب کم است و صدای غیرعادی یا نشتی واضح نداری؟",yes:"باز بودن شیرهای مسیر، سطح آب منبع و تمیز بودن صافی قابل بررسی ساده‌اند. اگر فشار برنگشت، تنظیم منبع تحت فشار، کلید فشار یا خود پمپ باید تخصصی بررسی شود.",no:"اگر صدا، لرزش، نشتی یا قطع‌و‌وصل مداوم داری، بهتر است ادامه بررسی را به کارشناس بسپاری."}
-],
-cooling:[
- {q:"دستگاه روشن است و بوی سوختگی یا صدای شدید ندارد؟",yes:1,no:"اگر روشن نمی‌شود، بوی سوختگی یا صدای غیرعادی دارد، برق دستگاه را قطع کن و سراغ برد، خازن یا کمپرسور نرو."},
- {q:"فیلتر پنل تمیز است و مسیر خروجی هوا مسدود نیست؟",yes:"اگر با فیلتر تمیز هنوز سرمایش ضعیف است، بررسی گاز، نشتی، کندانسور یا کمپرسور تخصصی است.",no:"تمیز کردن فیلتر طبق دستور سازنده و بررسی باز بودن مسیر هوا کار ساده‌ای است. اگر مشکل باقی ماند، سرویس لازم است."}
-],
-central:[
- {q:"مشکل فقط مربوط به یک فن‌کویل است و نشتی برق یا آب روی قطعات برقی نداری؟",yes:1,no:"اگر چند دستگاه هم‌زمان ضعیف شده‌اند یا آب به بخش برقی رسیده، سیستم مرکزی باید توسط کارشناس بررسی شود."},
- {q:"آیا فیلتر و مسیر درین قابل دسترس و ظاهراً تمیز هستند؟",yes:"اگر فیلتر و درین مشکلی ندارند ولی سرمایش، صدا یا آبریزش ادامه دارد، فن، شیر برقی، کویل یا مدار مرکزی باید تخصصی بررسی شود.",no:"تمیزکاری ساده فیلتر یا بررسی ظاهری درین قابل انجام است؛ باز کردن موتور فن یا شیرآلات کنترلی توصیه نمی‌شود."}
-],
-heating:[
- {q:"آیا بوی گاز، دود، صدای احتراق غیرعادی یا نشتی خطرناک نداری؟",yes:1,no:"در صورت بوی گاز یا نشانه احتراق غیرعادی، دستگاه را دستکاری نکن؛ تهویه فضا و مراجعه فوری به متخصص اولویت دارد."},
- {q:"فشار سیستم در محدوده عادی نمایش داده می‌شود؟",yes:"اگر فشار عادی است ولی گرمایش ضعیف مانده، هوا، رسوب، پمپ یا تنظیم مدار می‌تواند علت باشد و بررسی تخصصی منطقی‌تر است.",no:"اگر فشار افت کرده و علت مشخص نیست، از باز کردن قطعات خودداری کن؛ نشتی، منبع انبساط یا شیر اطمینان باید بررسی شود."}
-],
-floor:[
- {q:"مشکل فقط یک مدار یا یک رادیاتور است؟",yes:1,no:"اگر کل سیستم ضعیف است، منبع گرمایش، پمپ، دمای رفت یا بالانس مدار باید بررسی شود."},
- {q:"نشتی واضح از کلکتور یا شیرها نداری؟",yes:"هواگیری یا کنترل باز بودن شیرها می‌تواند بررسی اولیه باشد. اگر سردی تکرار شد، دبی، گرفتگی یا بالانس مدار نیاز به کارشناس دارد.",no:"برای نشتی کلکتور یا اتصالات، سیستم را دستکاری نکن و قبل از آسیب بیشتر درخواست بررسی بده."}
-],
-plumbing:[
- {q:"آیا محل نشتی کاملاً مشخص و در دسترس است؟",yes:"اگر فقط یک اتصال ساده و در دسترس است، بستن آب و بررسی ظاهری امن است. برای باز کردن دیوار، کف، رایزر یا اتصالات اصلی بهتر است کارشناس بیاید.",no:"برای نشتی پنهان یا افت فشار بدون محل مشخص، تشخیص تخصصی مناسب‌تر است و تخریب حدسی توصیه نمی‌شود."}
-],
-vent:[
- {q:"فن روشن می‌شود و مشکل فقط صدا یا مکش ضعیف است؟",yes:1,no:"اگر فن روشن نمی‌شود، برق و موتور نیاز به بررسی دارد. باز کردن تابلو یا سیم‌کشی بدون تخصص توصیه نمی‌شود."},
- {q:"دریچه یا مسیر ورودی هوا ظاهراً مسدود نیست؟",yes:"اگر مسیر باز است ولی مکش یا صدا مشکل دارد، بالانس فن، یاتاقان، تسمه یا کانال باید بررسی شود.",no:"رفع مانع ساده در دریچه قابل انجام است؛ اگر مشکل ادامه داشت، سرویس فن و کانال لازم است."}
-],
-pool:[
- {q:"پمپ تصفیه روشن است و صدای خیلی غیرعادی یا نشتی برق نداری؟",yes:1,no:"اگر پمپ روشن نمی‌شود، صدای شدید دارد یا آب به بخش برقی رسیده، برق را قطع کن و درخواست کارشناس بده."},
- {q:"سبد پیش‌فیلتر و مسیر مکش ظاهراً تمیز هستند؟",yes:"اگر مسیر تمیز است ولی گردش آب ضعیف مانده، فیلتر، هوا گرفتن مسیر، شیرها یا خود پمپ باید بررسی شود.",no:"تمیز کردن سبد قابل دسترس و کنترل ظاهری مسیر کار ساده‌ای است؛ باز کردن پمپ یا تابلو توصیه نمی‌شود."}
-]};
-let topic=null,index=0;
-const flow=document.getElementById("guideFlow"),qbox=document.getElementById("guideQuestion"),topicLabel=document.getElementById("guideTopic");
-function startTopic(name,scroll=true){
- const b=document.querySelector('[data-topic="'+name+'"]');if(!b||!flows[name])return;
- topic=name;index=0;topicLabel.textContent=b.querySelector("span").textContent;flow.hidden=false;renderQ();
- document.querySelectorAll("[data-topic]").forEach(x=>x.classList.toggle("active",x===b));
- if(scroll)flow.scrollIntoView({behavior:"smooth",block:"center"});
+function norm(v){return String(v||"").toLowerCase().replace(/ي/g,"ی").replace(/ك/g,"ک").trim()}
+function filterGuides(){
+  const q=norm(guideSearch.value);
+  document.querySelectorAll("[data-search]").forEach(el=>{
+    el.style.display=!q||norm(el.dataset.search+" "+el.textContent).includes(q)?"":"none";
+  });
 }
-document.querySelectorAll("[data-topic]").forEach(b=>b.onclick=()=>startTopic(b.dataset.topic));
-guideReset.onclick=()=>{flow.hidden=true;topic=null;document.querySelectorAll("[data-topic]").forEach(x=>x.classList.remove("active"))};
-function resultBox(text){
- qbox.innerHTML='<div class="guide-result"><b>پیشنهاد راهنمایی</b><p>'+text+'</p><div><a class="btn primary" href="estimate.html?type='+topic+'">برآورد قیمت / درخواست کارشناس</a><button class="btn soft" onclick="guideReset.click()">بررسی مشکل دیگر</button></div></div>';
-}
-function renderQ(){
- const item=flows[topic][index];
- if(!item)return;
- qbox.innerHTML='<div class="guide-question"><small>سؤال کوتاه</small><h3>'+item.q+'</h3><div><button class="btn primary" id="yesBtn">بله</button><button class="btn soft" id="noBtn">خیر</button></div></div>';
- yesBtn.onclick=()=>{if(typeof item.yes==="number"){index=item.yes;renderQ()}else resultBox(item.yes)};
- noBtn.onclick=()=>{if(typeof item.no==="number"){index=item.no;renderQ()}else resultBox(item.no)};
-}
-const preset=new URLSearchParams(location.search).get("type");
-if(preset&&flows[preset])startTopic(preset,false);
+guideSearchBtn.onclick=filterGuides;
+guideSearch.addEventListener("input",filterGuides);
+guideSearch.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();filterGuides()}});
 </script>
-</body>
-</html>
+</body></html>
