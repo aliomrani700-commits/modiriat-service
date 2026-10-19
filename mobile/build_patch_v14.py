@@ -105,3 +105,25 @@ if switch_ui not in x:
     x = x.replace(marker, marker + switch_ui)
 
 src.write_text(x)
+
+
+# Release-mode fix for shared_preferences JNI calls.
+# Recent Flutter shared_preferences Android code uses JNI signatures containing
+# kotlin.coroutines.Continuation. R8 obfuscation can rename that type and cause
+# NoSuchMethodError at runtime even though the APK builds successfully.
+gradle = Path('android/app/build.gradle.kts')
+if gradle.exists():
+    g = gradle.read_text()
+    rules = Path('android/app/proguard-rules.pro')
+    rules.write_text("""# Keep Flutter plugin JNI signatures stable in release builds.
+-dontobfuscate
+-keep class io.flutter.plugins.sharedpreferences.** { *; }
+-keep class kotlin.coroutines.** { *; }
+""")
+    if 'proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")' not in g:
+        g = g.replace(
+            '        release {\n',
+            '        release {\n            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")\n',
+            1,
+        )
+    gradle.write_text(g)
