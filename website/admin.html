@@ -7,48 +7,39 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body class="admin-page">
-<header class="admin-header">
-  <div class="container admin-nav">
-    <div class="brand"><span class="logo">ت</span><span><strong>پنل تهویکا</strong><small>نسخه آزمایشی مدیریت درخواست‌ها</small></span></div>
-    <a class="btn soft" href="index.html">مشاهده سایت</a>
+<header class="admin-header"><div class="container admin-nav">
+  <div class="brand"><span class="logo">ت</span><span><strong>پنل تهویکا</strong><small>مدیریت کارشناسی و اعزام</small></span></div>
+  <div class="admin-head-actions"><a class="btn soft" href="request-status.html">پیگیری مشتری</a><a class="btn soft" href="index.html">مشاهده سایت</a></div>
+</div></header>
+
+<main class="admin-main"><div class="container">
+<section class="admin-hero">
+  <div><span class="kicker">مدیریت درخواست‌ها</span><h1>از کارشناسی آنلاین تا اعزام</h1><p>درخواست مشتری، توضیحات، فایل‌های ارسالی، برآورد کارشناس و وضعیت اعزام در یک مسیر واحد مدیریت می‌شود.</p></div>
+  <button class="btn primary" id="seedBtn">ساخت درخواست نمونه</button>
+</section>
+
+<section class="admin-stats">
+  <div><span>کل درخواست‌ها</span><b id="countAll">۰</b></div>
+  <div><span>نیاز به پاسخ</span><b id="countNew">۰</b></div>
+  <div><span>قیمت اعلام شده</span><b id="countQuote">۰</b></div>
+  <div><span>اعزام / بسته</span><b id="countDone">۰</b></div>
+</section>
+
+<section class="admin-toolbar">
+  <div class="admin-tabs">
+    <button class="active" data-filter="all">همه</button><button data-filter="new">جدید</button>
+    <button data-filter="reviewing">در حال بررسی</button><button data-filter="quoted">قیمت اعلام شده</button>
+    <button data-filter="dispatched">اعزام شده</button><button data-filter="closed">بسته شده</button>
   </div>
-</header>
+  <input id="searchInput" placeholder="جستجو نام، شماره، خدمت یا کد پیگیری...">
+</section>
 
-<main class="admin-main">
-<div class="container">
-  <section class="admin-hero">
-    <div><span class="kicker">مدیریت سرنخ و درخواست</span><h1>درخواست‌های کارشناسی و اعزام</h1><p>این پنل فعلاً با اطلاعات ذخیره‌شده در مرورگر کار می‌کند تا جریان واقعی کسب‌وکار را تست کنیم. بعداً همین ساختار به دیتابیس و پیامک متصل می‌شود.</p></div>
-    <button class="btn primary" id="seedBtn">ساخت درخواست نمونه</button>
-  </section>
-
-  <section class="admin-stats">
-    <div><span>کل درخواست‌ها</span><b id="countAll">۰</b></div>
-    <div><span>جدید</span><b id="countNew">۰</b></div>
-    <div><span>در حال بررسی</span><b id="countReview">۰</b></div>
-    <div><span>اعزام / نهایی</span><b id="countDone">۰</b></div>
-  </section>
-
-  <section class="admin-toolbar">
-    <div class="admin-tabs">
-      <button class="active" data-filter="all">همه</button>
-      <button data-filter="new">جدید</button>
-      <button data-filter="reviewing">در حال بررسی</button>
-      <button data-filter="quoted">قیمت اعلام شده</button>
-      <button data-filter="dispatched">اعزام شده</button>
-      <button data-filter="closed">بسته شده</button>
-    </div>
-    <input id="searchInput" placeholder="جستجو نام، شماره یا خدمت...">
-  </section>
-
-  <section id="emptyState" class="admin-empty" hidden>
-    <b>هنوز درخواستی ثبت نشده</b>
-    <p>از صفحه برآورد آنلاین یک درخواست ثبت کن یا دکمه «ساخت درخواست نمونه» را بزن.</p>
-    <a class="btn primary" href="estimate.html">رفتن به برآورد آنلاین</a>
-  </section>
-
-  <section class="request-list" id="requestList"></section>
-</div>
-</main>
+<section id="emptyState" class="admin-empty" hidden>
+  <b>هنوز درخواستی ثبت نشده</b><p>برای تست، از برآورد آنلاین یک درخواست ثبت کن یا درخواست نمونه بساز.</p>
+  <a class="btn primary" href="estimate.html">رفتن به برآورد آنلاین</a>
+</section>
+<section class="request-list" id="requestList"></section>
+</div></main>
 
 <dialog id="detailDialog" class="admin-dialog">
   <div class="dialog-head"><div><small>جزئیات درخواست</small><h2 id="dTitle">—</h2></div><button onclick="detailDialog.close()">×</button></div>
@@ -57,56 +48,66 @@
     <div><span>شماره تماس</span><b id="dPhone">—</b></div>
     <div><span>خدمت</span><b id="dService">—</b></div>
     <div><span>زمان تماس</span><b id="dTime">—</b></div>
-    <div class="full"><span>توضیحات</span><p id="dDesc">—</p></div>
+    <div class="full"><span>توضیحات مشتری</span><p id="dDesc">—</p></div>
     <div class="full"><span>فایل‌های ارسالی</span><p id="dFiles">—</p></div>
   </div>
+
+  <div class="quote-editor">
+    <h3>پاسخ کارشناس</h3>
+    <div class="quote-grid">
+      <label><span>حداقل برآورد (تومان)</span><input id="quoteMin" inputmode="numeric" placeholder="مثلاً 1500000"></label>
+      <label><span>حداکثر برآورد (تومان)</span><input id="quoteMax" inputmode="numeric" placeholder="مثلاً 3000000"></label>
+      <label class="full"><span>نظر کارشناس برای مشتری</span><textarea id="expertNote" rows="3" placeholder="مثلاً احتمال خرابی منبع تحت فشار بالاست..."></textarea></label>
+    </div>
+  </div>
+
   <div class="dialog-actions">
     <select id="statusSelect">
-      <option value="new">جدید</option>
-      <option value="reviewing">در حال بررسی</option>
-      <option value="quoted">قیمت اعلام شده</option>
-      <option value="dispatched">اعزام شده</option>
-      <option value="closed">بسته شده</option>
+      <option value="new">جدید</option><option value="reviewing">در حال بررسی</option>
+      <option value="quoted">قیمت اعلام شده</option><option value="dispatched">اعزام شده</option><option value="closed">بسته شده</option>
     </select>
-    <button class="btn primary" id="saveStatus">ذخیره وضعیت</button>
+    <button class="btn primary" id="saveStatus">ذخیره پاسخ</button>
+    <a class="btn soft" id="callCustomer" href="#">تماس</a>
     <button class="btn danger" id="deleteRequest">حذف</button>
   </div>
 </dialog>
 
 <script>
-const key="tahvika_requests";
-let filter="all", activeId=null;
+const key="tahvika_requests"; let filter="all",activeId=null;
 const fa=n=>new Intl.NumberFormat("fa-IR").format(n);
+const money=n=>n?new Intl.NumberFormat("fa-IR").format(Number(n))+" تومان":"—";
 const labels={new:"جدید",reviewing:"در حال بررسی",quoted:"قیمت اعلام شده",dispatched:"اعزام شده",closed:"بسته شده"};
-function load(){return JSON.parse(localStorage.getItem(key)||"[]")}
+function load(){try{return JSON.parse(localStorage.getItem(key)||"[]")}catch{return[]}}
 function save(v){localStorage.setItem(key,JSON.stringify(v))}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function render(){
- const all=load(), q=searchInput.value.trim().toLowerCase();
- countAll.textContent=fa(all.length);
- countNew.textContent=fa(all.filter(x=>x.status==="new").length);
- countReview.textContent=fa(all.filter(x=>x.status==="reviewing"||x.status==="quoted").length);
- countDone.textContent=fa(all.filter(x=>x.status==="dispatched"||x.status==="closed").length);
- const rows=all.filter(x=>(filter==="all"||x.status===filter)&&(!q||[x.name,x.phone,x.serviceName,x.description].join(" ").toLowerCase().includes(q)));
+ const all=load(),q=searchInput.value.trim().toLowerCase();
+ countAll.textContent=fa(all.length);countNew.textContent=fa(all.filter(x=>x.status==="new"||x.status==="reviewing").length);
+ countQuote.textContent=fa(all.filter(x=>x.status==="quoted").length);countDone.textContent=fa(all.filter(x=>x.status==="dispatched"||x.status==="closed").length);
+ const rows=all.filter(x=>(filter==="all"||x.status===filter)&&(!q||[x.id,x.name,x.phone,x.serviceName,x.description].join(" ").toLowerCase().includes(q)));
  emptyState.hidden=all.length!==0;
  requestList.innerHTML=rows.map(x=>{
-   const date=new Date(x.createdAt).toLocaleString("fa-IR",{dateStyle:"short",timeStyle:"short"});
-   return '<article class="request-card" data-id="'+esc(x.id)+'"><div class="request-top"><div><span class="status '+esc(x.status)+'">'+esc(labels[x.status]||x.status)+'</span><small>'+esc(date)+'</small></div><b>'+esc(x.id)+'</b></div><h3>'+esc(x.serviceName)+'</h3><p>'+esc(x.description||"بدون توضیح")+'</p><div class="request-meta"><span>'+esc(x.name||"بدون نام")+'</span><span>'+esc(x.phone||"بدون شماره")+'</span><span>'+(x.mode==="dispatch"?"اعزام حضوری":"کارشناسی آنلاین")+'</span></div><button class="btn soft">مشاهده و مدیریت</button></article>'
+  const date=new Date(x.createdAt).toLocaleString("fa-IR",{dateStyle:"short",timeStyle:"short"});
+  const quote=x.quoteMin||x.quoteMax?'<div class="card-quote"><small>برآورد کارشناس</small><b>'+money(x.quoteMin)+' تا '+money(x.quoteMax)+'</b></div>':"";
+  return '<article class="request-card" data-id="'+esc(x.id)+'"><div class="request-top"><div><span class="status '+esc(x.status)+'">'+esc(labels[x.status]||x.status)+'</span><small>'+esc(date)+'</small></div><b>'+esc(x.id)+'</b></div><h3>'+esc(x.serviceName)+'</h3><p>'+esc(x.description||"بدون توضیح")+'</p>'+quote+'<div class="request-meta"><span>'+esc(x.name||"بدون نام")+'</span><span>'+esc(x.phone||"بدون شماره")+'</span><span>'+(x.mode==="dispatch"?"اعزام حضوری":"کارشناسی آنلاین")+'</span></div><button class="btn soft">مشاهده و پاسخ</button></article>'
  }).join("");
  document.querySelectorAll(".request-card").forEach(el=>el.onclick=()=>openRequest(el.dataset.id));
 }
 function openRequest(id){
- const x=load().find(r=>r.id===id); if(!x)return; activeId=id;
- dTitle.textContent=x.id; dName.textContent=x.name||"—"; dPhone.textContent=x.phone||"—"; dService.textContent=x.serviceName||"—"; dTime.textContent=x.contactTime||"—"; dDesc.textContent=x.description||"بدون توضیح"; dFiles.textContent=x.files?.length?x.files.join("، "):"فایلی ثبت نشده"; statusSelect.value=x.status||"new"; detailDialog.showModal();
+ const x=load().find(r=>r.id===id);if(!x)return;activeId=id;
+ dTitle.textContent=x.id;dName.textContent=x.name||"—";dPhone.textContent=x.phone||"—";dService.textContent=x.serviceName||"—";dTime.textContent=x.contactTime||"—";
+ dDesc.textContent=x.description||"بدون توضیح";dFiles.textContent=x.files?.length?x.files.join("، "):"فایلی ثبت نشده";
+ statusSelect.value=x.status||"new";quoteMin.value=x.quoteMin||"";quoteMax.value=x.quoteMax||"";expertNote.value=x.expertNote||"";
+ callCustomer.href=x.phone?"tel:"+x.phone:"#";detailDialog.showModal();
 }
-saveStatus.onclick=()=>{const a=load(),i=a.findIndex(x=>x.id===activeId);if(i>=0){a[i].status=statusSelect.value;save(a);detailDialog.close();render()}};
+saveStatus.onclick=()=>{const a=load(),i=a.findIndex(x=>x.id===activeId);if(i<0)return;
+ a[i].status=statusSelect.value;a[i].quoteMin=quoteMin.value.trim();a[i].quoteMax=quoteMax.value.trim();a[i].expertNote=expertNote.value.trim();a[i].updatedAt=new Date().toISOString();
+ if((a[i].quoteMin||a[i].quoteMax)&&a[i].status==="reviewing")a[i].status="quoted";save(a);detailDialog.close();render();
+};
 deleteRequest.onclick=()=>{if(!confirm("این درخواست حذف شود؟"))return;save(load().filter(x=>x.id!==activeId));detailDialog.close();render()};
 document.querySelectorAll(".admin-tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".admin-tabs button").forEach(x=>x.classList.remove("active"));b.classList.add("active");filter=b.dataset.filter;render()});
 searchInput.oninput=render;
-seedBtn.onclick=()=>{
- const a=load();a.unshift({id:"TH-"+Date.now().toString().slice(-8),createdAt:new Date().toISOString(),name:"مشتری نمونه",phone:"0912xxxxxxx",description:"پمپ مدام قطع و وصل می‌شود و فشار آب نوسان دارد.",contactTime:"عصر",mode:"review",type:"pump",serviceName:"پمپ و آبرسانی",symptom:"1",files:["pump-video.mp4"],status:"new"});save(a);render()
-};
+seedBtn.onclick=()=>{const a=load();a.unshift({id:"TH-"+Date.now().toString().slice(-8),createdAt:new Date().toISOString(),name:"مشتری نمونه",phone:"0912xxxxxxx",description:"پمپ مدام قطع و وصل می‌شود و فشار آب نوسان دارد.",contactTime:"عصر",mode:"review",type:"pump",serviceName:"پمپ و آبرسانی",files:["pump-video.mp4"],status:"new"});save(a);render()};
 render();
 </script>
-</body>
-</html>
+</body></html>
