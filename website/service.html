@@ -6,20 +6,31 @@
 <meta name="description" content="خدمات تخصصی تأسیسات ساختمان تهویکا">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-<header class="header"><div class="container nav">
-<a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>تأسیسات ساختمان</small></span></a>
-<nav><a href="index.html#services">خدمات</a><a href="index.html#maintenance">نگهداری دوره‌ای</a><a href="index.html#projects">پروژه‌ها</a><a href="index.html#guides">راهنماها</a></nav>
-<a class="btn primary" href="#contact">درخواست سرویس</a>
+<body class="service-page">
+<header class="ph-header"><div class="container ph-nav">
+<a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>خدمات تخصصی تأسیسات ساختمان</small></span></a>
+<nav><a href="estimate.html" class="ph-hot">برآورد هزینه</a><a href="guide.html">راهنمای عیب‌یابی</a><a href="index.html#services">خدمات</a><a href="index.html#projects">پروژه‌ها</a></nav>
+<a class="btn primary" id="headerEstimate" href="estimate.html">برآورد این خدمت</a>
 </div></header>
 
 <main>
-<section class="service-hero">
-  <div class="container">
-    <a class="back" href="index.html#services">← بازگشت به خدمات</a>
-    <span class="kicker" id="eyebrow">خدمات تخصصی</span>
-    <h1 id="title">خدمات تأسیسات</h1>
-    <p id="lead">جزئیات خدمت در حال بارگذاری است.</p>
+<section class="service-hero premium-service-hero">
+  <div class="container service-hero-grid">
+    <div>
+      <a class="back" href="index.html#services">← بازگشت به خدمات</a>
+      <span class="kicker" id="eyebrow">خدمات تخصصی</span>
+      <h1 id="title">خدمات تأسیسات</h1>
+      <p id="lead">جزئیات خدمت در حال بارگذاری است.</p>
+      <div class="service-hero-actions">
+        <a class="btn primary big" id="heroEstimate" href="estimate.html">برآورد قیمت این خدمت</a>
+        <a class="btn soft big" id="heroGuide" href="guide.html">اول راهنمای عیب‌یابی</a>
+      </div>
+    </div>
+    <div class="service-route-card">
+      <span>دو مسیر انتخابی</span>
+      <div><b>راهنمایی</b><small>اگر می‌خواهی اول علت احتمالی را بفهمی و بررسی ساده انجام بدهی.</small></div>
+      <div><b>سرویس</b><small>اگر نمی‌خواهی خودت درگیر شوی، مستقیم برآورد بگیر و درخواست کارشناس ثبت کن.</small></div>
+    </div>
   </div>
 </section>
 
@@ -43,20 +54,25 @@
       </div>
     </div>
     <aside>
-      <div class="aside-card" id="contact">
-        <span class="kicker light">درخواست بازدید</span>
-        <h2>برای بررسی این سیستم نیاز به کارشناس دارید؟</h2>
-        <p>شماره تماس و واتساپ واقعی مجموعه بعداً جایگزین می‌شود. فعلاً این صفحه برای تست ساختار و تجربه کاربری ساخته شده است.</p>
-        <a class="btn white big" href="tel:+980000000000" style="width:100%;margin-top:10px">تماس با مجموعه</a>
+      <div class="aside-card service-aside" id="contact">
+        <span class="kicker light">قدم بعدی</span>
+        <h2>می‌خواهی راهنمایی بگیری یا کارشناس بیاد؟</h2>
+        <p>برای این خدمت دو مسیر مستقل داری. می‌توانی اول راهنمای عیب‌یابی را ببینی یا مستقیم وارد برآورد و ثبت درخواست شوی.</p>
+        <a class="btn white big" id="asideEstimate" href="estimate.html" style="width:100%;margin-top:10px">برآورد قیمت و درخواست کارشناس</a>
+        <a class="btn outline big" id="asideGuide" href="guide.html" style="width:100%;margin-top:10px">راهنمای عیب‌یابی</a>
+      </div>
+      <div class="service-trust-card">
+        <b>شفافیت قبل از اعزام</b>
+        <span>تشخیص اولیه، بازه هزینه و امکان ارسال عکس/ویدئو قبل از حضور کارشناس.</span>
       </div>
     </aside>
   </div>
 </section>
 </main>
 
-<footer><div class="container footer-grid"><div><a class="brand footer-brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>تأسیسات ساختمان</small></span></a><p>خدمات تخصصی تأسیسات ساختمان در تهران.</p></div><div><b>خدمات</b><a href="service.html?type=pump">پمپ و آبرسانی</a><a href="service.html?type=cooling">سرمایش</a><a href="service.html?type=heating">گرمایش</a></div><div><b>دسترسی</b><a href="index.html#projects">پروژه‌ها</a><a href="index.html#guides">راهنماها</a></div><div><b>ارتباط</b><span>تهران</span><span>شماره تماس: بعداً اضافه می‌شود</span></div></div></footer>
+<footer class="ph-footer"><div class="container ph-footer-grid"><div><a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>نام موقت پروژه</small></span></a><p>خدمات تخصصی تأسیسات ساختمان با تمرکز بر کارشناسی، شفافیت هزینه و پیگیری.</p></div><div><b>خدمات</b><a href="service.html?type=pump">پمپ و آبرسانی</a><a href="service.html?type=cooling">سرمایش</a><a href="service.html?type=heating">گرمایش</a></div><div><b>دسترسی</b><a href="guide.html">راهنمای عیب‌یابی</a><a href="estimate.html">برآورد آنلاین</a><a href="request-status.html">پیگیری درخواست</a></div><div><b>ارتباط</b><span>شماره تماس: بعداً درج می‌شود</span><span>محدوده خدمات: بعداً نهایی می‌شود</span></div></div></footer>
 
-<div class="mobile-bar"><a href="tel:+980000000000">تماس</a><a href="#contact">درخواست سرویس</a></div>
+<div class="mobile-bar"><a id="mobileGuide" href="guide.html">راهنمایی</a><a id="mobileEstimate" href="estimate.html">برآورد هزینه</a></div>
 
 <script>
 const data={
@@ -73,6 +89,8 @@ pool:{title:"استخر، جکوزی و تصفیه آب",eyebrow:"گردش و ت
 const type=new URLSearchParams(location.search).get("type")||"pump";
 const d=data[type]||data.pump;
 document.title=d.title+" | تهویکا";
+["headerEstimate","heroEstimate","asideEstimate","mobileEstimate"].forEach(id=>{const el=document.getElementById(id);if(el)el.href="estimate.html?type="+encodeURIComponent(type)});
+["heroGuide","asideGuide","mobileGuide"].forEach(id=>{const el=document.getElementById(id);if(el)el.href="guide.html?type="+encodeURIComponent(type)});
 document.getElementById("title").textContent=d.title;
 document.getElementById("eyebrow").textContent=d.eyebrow;
 document.getElementById("lead").textContent=d.lead;
