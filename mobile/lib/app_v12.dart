@@ -471,6 +471,34 @@ class _HomeScreenState extends State<HomeScreen> {
     await _saveCore();
   }
 
+  Future<void> _openDebtInvoice(Customer c,InvoiceRecord i,BuildContext dialogContext) async {
+    Navigator.pop(dialogContext);
+    await Navigator.push(context,MaterialPageRoute(builder:(_)=>CustomerScreen(
+      customer:c,
+      templates:templates,
+      settings:settings,
+      onSave:_saveCore,
+      onSchedule:_schedule,
+      onEditCustomer:()=>_customerForm(customer:c),
+      onDeleteCustomer:()=>_deleteCustomer(c),
+      initialInvoiceId:i.id,
+    )));
+    if(mounted)setState((){});
+  }
+
+  Future<void> _deleteDebtInvoice(Customer c,InvoiceRecord i,BuildContext dialogContext) async {
+    final yes=await _confirmDelete(dialogContext,'حذف فاکتور','فاکتور «${i.internalName.trim().isEmpty?i.documentNumber:i.internalName}» حذف شود؟');
+    if(!yes)return;
+    c.invoices.removeWhere((e)=>e.id==i.id);
+    await _saveCore(dailyBackup:false);
+    if(dialogContext.mounted)Navigator.pop(dialogContext);
+    if(mounted){
+      setState((){});
+      await Future<void>.delayed(const Duration(milliseconds:120));
+      if(mounted)await _debtDialog();
+    }
+  }
+
   Future<void> _debtDialog() async {
     final debtors=customers.where((c)=>c.balance>0).toList()..sort((a,b)=>b.balance.compareTo(a.balance));
     await showDialog(context:context,builder:(d)=>AlertDialog(
@@ -484,11 +512,22 @@ class _HomeScreenState extends State<HomeScreen> {
             Text('مانده حساب: ${money(c.balance)}',style:TextStyle(fontWeight:FontWeight.bold,color:Colors.red.shade700)),
             const SizedBox(height:6),
             if(open.isEmpty)const Text('فاکتور باز مشخصی ثبت نشده؛ مانده از جمع فاکتورها و پرداخت‌ها محاسبه شده.')
-            else ...open.map((i)=>Padding(padding:const EdgeInsets.symmetric(vertical:3),child:Row(children:[
-              const Icon(Icons.receipt_long_outlined,size:18),const SizedBox(width:6),
-              Expanded(child:Text(i.internalName.trim().isEmpty?'فاکتور ${i.documentNumber}':i.internalName)),
-              Text(money(i.total),style:const TextStyle(fontWeight:FontWeight.w700))
-            ])))
+            else ...open.map((i)=>Card(
+              margin:const EdgeInsets.only(top:6),
+              child:ListTile(
+                dense:true,
+                contentPadding:const EdgeInsets.fromLTRB(8,4,10,4),
+                leading:const Icon(Icons.receipt_long_outlined),
+                title:Text(i.internalName.trim().isEmpty?'فاکتور ${i.documentNumber}':i.internalName,style:const TextStyle(fontWeight:FontWeight.w700)),
+                subtitle:Text('شماره: ${i.documentNumber} • تاریخ: ${i.date}\n${money(i.total)}'),
+                isThreeLine:true,
+                onTap:()=>_openDebtInvoice(c,i,d),
+                trailing:Wrap(spacing:0,children:[
+                  IconButton(onPressed:()=>_openDebtInvoice(c,i,d),icon:const Icon(Icons.edit_outlined),tooltip:'مشاهده / ویرایش فاکتور'),
+                  IconButton(onPressed:()=>_deleteDebtInvoice(c,i,d),icon:const Icon(Icons.delete_outline),tooltip:'حذف فاکتور')
+                ])
+              )
+            ))
           ])));
         }).toList())),
       actions:[FilledButton(onPressed:()=>Navigator.pop(d),child:const Text('بستن'))]
@@ -657,12 +696,25 @@ class _DailyTasksScreenState extends State<DailyTasksScreen>{
 }
 
 class CustomerScreen extends StatefulWidget {
-  const CustomerScreen({super.key,required this.customer,required this.templates,required this.settings,required this.onSave,required this.onSchedule,required this.onEditCustomer,required this.onDeleteCustomer});
-  final Customer customer; final List<SmsTemplate> templates; final AppSettings settings; final Future<void> Function({bool dailyBackup}) onSave; final Future<void> Function(Customer) onSchedule; final Future<void> Function() onEditCustomer; final Future<void> Function() onDeleteCustomer;
+  const CustomerScreen({super.key,required this.customer,required this.templates,required this.settings,required this.onSave,required this.onSchedule,required this.onEditCustomer,required this.onDeleteCustomer,this.initialInvoiceId});
+  final Customer customer; final List<SmsTemplate> templates; final AppSettings settings; final Future<void> Function({bool dailyBackup}) onSave; final Future<void> Function(Customer) onSchedule; final Future<void> Function() onEditCustomer; final Future<void> Function() onDeleteCustomer; final String? initialInvoiceId;
   @override State<CustomerScreen> createState()=>_CustomerScreenState();
 }
 class _CustomerScreenState extends State<CustomerScreen>{
   Customer get c=>widget.customer;
+
+  @override void initState(){
+    super.initState();
+    final id=widget.initialInvoiceId;
+    if(id!=null&&id.isNotEmpty){
+      WidgetsBinding.instance.addPostFrameCallback((_){
+        if(!mounted)return;
+        InvoiceRecord? target;
+        for(final inv in c.invoices){if(inv.id==id){target=inv;break;}}
+        if(target!=null)_invoiceForm(invoice:target);
+      });
+    }
+  }
   Future<void> _save()async{await widget.onSave();if(mounted)setState((){});}
 
   DeviceRecord? _deviceById(String id){for(final d in c.devices){if(d.id==id)return d;}return null;}
