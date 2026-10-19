@@ -24,29 +24,34 @@
   </section>
 
   <section class="estimate-card review-card">
-    <div class="review-summary" id="summary">
+    <div class="review-summary">
       <span>اطلاعات برآورد قبلی</span>
       <b id="summaryText">در حال آماده‌سازی...</b>
     </div>
 
-    <form onsubmit="event.preventDefault(); document.getElementById('success').hidden=false; this.querySelector('button[type=submit]').disabled=true;">
+    <form id="requestForm">
       <div class="form-grid">
-        <label><span>نام و نام خانوادگی</span><input required placeholder="مثلاً علی عمرانی"></label>
-        <label><span>شماره تماس</span><input required inputmode="tel" placeholder="09xxxxxxxxx"></label>
-        <label class="full"><span>توضیح کوتاه مشکل</span><textarea rows="4" placeholder="هر چیزی که فکر می‌کنی به تشخیص کمک می‌کند..."></textarea></label>
+        <label><span>نام و نام خانوادگی</span><input id="name" required placeholder="مثلاً علی رضایی"></label>
+        <label><span>شماره تماس</span><input id="phone" required inputmode="tel" placeholder="09xxxxxxxxx"></label>
+        <label class="full"><span>توضیح کوتاه مشکل</span><textarea id="description" rows="4" placeholder="مثلاً پمپ روشن می‌شود ولی فشار طبقه سوم ضعیف است..."></textarea></label>
         <label class="full upload-box">
           <span>عکس یا ویدئو</span>
-          <input type="file" accept="image/*,video/*" multiple>
-          <small>در نسخه نهایی فایل‌ها روی سرور ذخیره می‌شوند و کارشناس از پنل مدیریت آن‌ها را بررسی می‌کند.</small>
+          <input id="files" type="file" accept="image/*,video/*" multiple>
+          <small>در این نسخه آزمایشی فقط نام فایل‌ها ذخیره می‌شود. در نسخه آنلاین فایل واقعی روی سرور قرار می‌گیرد.</small>
+          <div id="fileNames" class="file-names"></div>
         </label>
-        <label class="full"><span>زمان مناسب تماس</span>
-          <select><option>فرقی ندارد</option><option>صبح</option><option>ظهر</option><option>عصر</option></select>
+        <label><span>زمان مناسب تماس</span>
+          <select id="contactTime"><option>فرقی ندارد</option><option>صبح</option><option>ظهر</option><option>عصر</option></select>
+        </label>
+        <label><span>نوع درخواست</span>
+          <select id="requestMode"><option value="review">کارشناسی آنلاین</option><option value="dispatch">اعزام کارشناس</option></select>
         </label>
       </div>
       <button class="btn primary big submit-wide" type="submit" id="submitBtn">ارسال برای کارشناسی</button>
       <div class="prototype-success" id="success" hidden>
-        <b>درخواست نمونه ثبت شد ✓</b>
-        <p>این فقط پروتوتایپ است؛ در نسخه عملیاتی، درخواست در پنل مدیریت ثبت و برای کارشناس اعلان می‌شود.</p>
+        <b>درخواست ثبت شد ✓</b>
+        <p id="successText"></p>
+        <a class="btn soft" href="estimate.html" style="margin-top:10px">ثبت درخواست دیگر</a>
       </div>
     </form>
   </section>
@@ -60,13 +65,47 @@
 
 <script>
 const names={pump:"پمپ و آبرسانی",cooling:"کولر گازی / داکت اسپلیت",central:"فن‌کویل / چیلر",heating:"پکیج / موتورخانه",floor:"گرمایش از کف / رادیاتور",plumbing:"لوله‌کشی",vent:"تهویه / هواکش",pool:"استخر / تصفیه آب"};
-const p=new URLSearchParams(location.search), type=p.get("type"), mode=p.get("mode");
+const p=new URLSearchParams(location.search), type=p.get("type"), symptom=p.get("symptom"), mode=p.get("mode");
 if(mode==="dispatch"){
- document.getElementById("pageTitle").textContent="درخواست اعزام کارشناس";
- document.getElementById("pageLead").textContent="مشخصات تماس و زمان مناسب را ثبت کن تا درخواست بازدید حضوری آماده شود.";
- document.getElementById("submitBtn").textContent="ثبت درخواست اعزام";
+  pageTitle.textContent="درخواست اعزام کارشناس";
+  pageLead.textContent="مشخصات تماس و زمان مناسب را ثبت کن تا درخواست بازدید حضوری آماده شود.";
+  requestMode.value="dispatch";
+  submitBtn.textContent="ثبت درخواست اعزام";
 }
-document.getElementById("summaryText").textContent=type&&names[type] ? "سیستم انتخاب‌شده: "+names[type] : "برآورد قبلی مستقیماً از همین صفحه قابل تکمیل است.";
+summaryText.textContent=type&&names[type] ? "سیستم انتخاب‌شده: "+names[type] : "این درخواست بدون برآورد قبلی ثبت می‌شود.";
+
+files.addEventListener("change",()=>{
+  const list=[...files.files].map(f=>f.name);
+  fileNames.textContent=list.length ? "فایل‌های انتخاب‌شده: "+list.join("، ") : "";
+});
+
+requestMode.addEventListener("change",()=>{
+ submitBtn.textContent=requestMode.value==="dispatch" ? "ثبت درخواست اعزام" : "ارسال برای کارشناسی";
+});
+
+requestForm.addEventListener("submit",(e)=>{
+ e.preventDefault();
+ const requests=JSON.parse(localStorage.getItem("tahvika_requests")||"[]");
+ const item={
+   id:"TH-"+Date.now().toString().slice(-8),
+   createdAt:new Date().toISOString(),
+   name:name.value.trim(),
+   phone:phone.value.trim(),
+   description:description.value.trim(),
+   contactTime:contactTime.value,
+   mode:requestMode.value,
+   type:type||"",
+   serviceName:type&&names[type]?names[type]:"مشخص نشده",
+   symptom:symptom||"",
+   files:[...files.files].map(f=>f.name),
+   status:"new"
+ };
+ requests.unshift(item);
+ localStorage.setItem("tahvika_requests",JSON.stringify(requests));
+ submitBtn.disabled=true;
+ success.hidden=false;
+ successText.textContent="کد پیگیری نمونه: "+item.id+" — این درخواست الان داخل پنل مدیریتی آزمایشی همین مرورگر قابل مشاهده است.";
+});
 </script>
 </body>
 </html>
