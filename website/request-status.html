@@ -6,27 +6,29 @@
 <meta name="description" content="پیگیری وضعیت کارشناسی، برآورد هزینه و اعزام کارشناس.">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body class="estimate-page">
-<header class="header"><div class="container nav">
-<a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>تأسیسات ساختمان</small></span></a>
-<nav><a href="estimate.html">برآورد آنلاین</a><a href="index.html#services">خدمات</a></nav>
+<body class="estimate-page premium-tool-page tracking-page">
+<header class="ph-header"><div class="container ph-nav">
+<a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>پیگیری درخواست</small></span></a>
+<nav><a href="estimate.html" class="ph-hot">برآورد هزینه</a><a href="guide.html">راهنمای عیب‌یابی</a><a href="index.html#services">خدمات</a></nav>
 <a class="btn soft" href="index.html">صفحه اصلی</a>
 </div></header>
 
 <main class="estimate-main">
 <div class="container status-shell">
-<section class="estimate-intro">
-<span class="kicker">پیگیری درخواست</span>
-<h1>کد پیگیری را وارد کن</h1>
-<p>وضعیت کارشناسی، پاسخ متخصص، بازه هزینه و مرحله اعزام را همین‌جا ببین.</p>
+<section class="estimate-intro tracking-intro">
+<span class="kicker">پیگیری شفاف</span>
+<h1>ببین درخواستت دقیقاً در چه مرحله‌ایه.</h1>
+<p>با کد پیگیری می‌توانی وضعیت کارشناسی، پاسخ متخصص، بازه هزینه و مرحله اعزام را بدون تماس اضافه ببینی.</p>
+<div class="tracking-benefits"><span>✓ وضعیت لحظه‌ای درخواست</span><span>✓ مشاهده پاسخ کارشناس</span><span>✓ تأیید اعزام بعد از برآورد</span></div>
 </section>
 
-<section class="estimate-card tracking-card">
+<section class="estimate-card tracking-card premium-tracking-card">
+<div class="tracking-search-label"><span>کد پیگیری</span><small>کدی که بعد از ثبت درخواست دریافت کردی</small></div>
 <div class="tracking-search">
 <input id="trackCode" placeholder="مثلاً TH-12345678">
 <button class="btn primary" id="trackBtn">پیگیری</button>
 </div>
-<div id="notFound" class="track-message" hidden>درخواستی با این کد در این نسخه آزمایشی پیدا نشد.</div>
+<div id="notFound" class="track-message" hidden>درخواستی با این کد در این نسخه آزمایشی پیدا نشد. کد را دوباره بررسی کن یا یک درخواست جدید ثبت کن.</div>
 
 <div id="trackResult" hidden>
   <div class="track-head"><div><span>کد پیگیری</span><b id="rId">—</b></div><span class="status" id="rStatus">—</span></div>
@@ -52,6 +54,11 @@
 
   <div class="track-meta"><span id="rName">—</span><span id="rPhone">—</span><span id="rTime">—</span></div>
 </div>
+</section>
+
+<section class="tracking-help-grid">
+  <div><b>هنوز درخواست ندادی؟</b><p>می‌تونی با چند انتخاب کوتاه برآورد اولیه بگیری و در صورت تمایل درخواست کارشناسی یا اعزام ثبت کنی.</p><a href="estimate.html">شروع برآورد آنلاین ←</a></div>
+  <div><b>فقط راهنمایی می‌خوای؟</b><p>اگر قصد اعزام نداری، مسیر عیب‌یابی مرحله‌ای جداست و می‌تونی اول از اون استفاده کنی.</p><a href="guide.html">رفتن به راهنمای عیب‌یابی ←</a></div>
 </section>
 </div>
 </main>
