@@ -364,15 +364,98 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _backupDialog() async {
-    await showDialog(context:context,builder:(d)=>AlertDialog(title:const Text('بکاپ و بازیابی'),content:const Text('بکاپ دستی در پوشه Download/ModiriatService ذخیره می‌شود. بکاپ خودکار نیز روزی یک‌بار هنگام باز شدن برنامه انجام می‌شود.'),actions:[
-      TextButton(onPressed:()async{await Clipboard.setData(ClipboardData(text:jsonEncode(_fullBackup())));if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('بکاپ در کلیپ‌بورد کپی شد')));},child:const Text('کپی بکاپ')),
-      TextButton(onPressed:()async{try{final ok=await _channel.invokeMethod<bool>('saveBackup',{'json':jsonEncode(_fullBackup()),'fileName':'modiriat-service-manual-${DateTime.now().millisecondsSinceEpoch}.json'});if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(ok==true?'بکاپ در Downloads ذخیره شد':'ذخیره بکاپ انجام نشد')));}catch(_){ }},child:const Text('ذخیره در Downloads')),
-      FilledButton(onPressed:()async{
-        final clip=await Clipboard.getData('text/plain');
-        try{
-          var raw=(clip?.text??'').trim();
-          if(raw.startsWith('```')){raw=raw.replaceFirst(RegExp(r'^\`\`\`(?:json)?\\s*',caseSensitive:false),'').replaceFirst(RegExp(r'\\s*\`\`\`
-    ]));
+    await showDialog(context:context,builder:(d)=>AlertDialog(
+      title:const Text('بکاپ و بازیابی'),
+      content:const Text('بکاپ دستی در پوشه Download/ModiriatService ذخیره می‌شود. بکاپ خودکار نیز روزی یک‌بار هنگام باز شدن برنامه انجام می‌شود.'),
+      actions:[
+        TextButton(
+          onPressed:()async{
+            await Clipboard.setData(ClipboardData(text:jsonEncode(_fullBackup())));
+            if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('بکاپ در کلیپ‌بورد کپی شد')));
+          },
+          child:const Text('کپی بکاپ')
+        ),
+        TextButton(
+          onPressed:()async{
+            try{
+              final ok=await _channel.invokeMethod<bool>('saveBackup',{'json':jsonEncode(_fullBackup()),'fileName':'modiriat-service-manual-${DateTime.now().millisecondsSinceEpoch}.json'});
+              if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(ok==true?'بکاپ در Downloads ذخیره شد':'ذخیره بکاپ انجام نشد')));
+            }catch(_){}
+          },
+          child:const Text('ذخیره در Downloads')
+        ),
+        FilledButton(
+          onPressed:()async{
+            final clip=await Clipboard.getData('text/plain');
+            try{
+              var raw=(clip?.text??'').trim();
+              final first=raw.indexOf('{');
+              final last=raw.lastIndexOf('}');
+              if(first<0||last<=first)throw const FormatException('متن JSON پیدا نشد');
+              raw=raw.substring(first,last+1);
+              final decoded=jsonDecode(raw);
+              if(decoded is! Map)throw const FormatException('ساختار بکاپ صحیح نیست');
+              final map=Map<String,dynamic>.from(decoded);
+              if(map['customers'] is! List)throw const FormatException('لیست مشتری‌ها در بکاپ نیست');
+
+              final restored=<Customer>[];
+              var skipped=0;
+              for(final e in (map['customers'] as List)){
+                try{
+                  restored.add(Customer.fromJson(Map<String,dynamic>.from(e as Map)));
+                }catch(_){skipped++;}
+              }
+              if(restored.isEmpty&&(map['customers'] as List).isNotEmpty){
+                throw const FormatException('هیچ مشتری قابل بازیابی نبود');
+              }
+
+              customers..clear()..addAll(restored);
+
+              if(map['templates'] is List){
+                final restoredTemplates=<SmsTemplate>[];
+                for(final e in (map['templates'] as List)){
+                  try{restoredTemplates.add(SmsTemplate.fromJson(Map<String,dynamic>.from(e as Map)));}catch(_){}
+                }
+                if(restoredTemplates.isNotEmpty){
+                  templates..clear()..addAll(restoredTemplates);
+                }
+              }
+
+              if(map['settings'] is Map){
+                try{settings=AppSettings.fromJson(Map<String,dynamic>.from(map['settings'] as Map));}catch(_){}
+              }
+
+              if(map['tasks'] is List){
+                final restoredTasks=<DailyTask>[];
+                for(final e in (map['tasks'] as List)){
+                  try{restoredTasks.add(DailyTask.fromJson(Map<String,dynamic>.from(e as Map)));}catch(_){}
+                }
+                tasks..clear()..addAll(restoredTasks);
+              }
+
+              await _saveCore(dailyBackup:false);
+              Future(()async{
+                try{await _scheduleAll().timeout(const Duration(seconds:8));}catch(_){}
+              });
+
+              if(d.mounted)Navigator.pop(d);
+              if(mounted){
+                final msg=skipped==0
+                    ?'${restored.length} مشتری با موفقیت بازیابی شد'
+                    :'${restored.length} مشتری بازیابی شد؛ $skipped مورد ناقص رد شد';
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(msg)));
+              }
+            }catch(e){
+              if(mounted){
+                final msg=e.toString().replaceAll('FormatException: ','');
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('بازیابی انجام نشد: $msg')));
+              }
+            }
+          },
+          child:const Text('بازیابی از کلیپ‌بورد')
+        )
+      ]
+    ));
   }
 
   int get _dueWorkCount {
