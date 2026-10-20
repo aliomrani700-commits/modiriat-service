@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>کارشناسی آنلاین | تهویکا</title>
+<title>درخواست سرویس‌کار یا کارشناسی آنلاین | تهویکا</title>
 <meta name="description" content="ارسال عکس یا ویدئو برای کارشناسی آنلاین و برآورد دقیق‌تر هزینه تأسیسات.">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -11,7 +11,7 @@
   <div class="container ph-nav">
     <a class="brand" href="index.html"><span class="logo">ت</span><span><strong>تهویکا</strong><small>کارشناسی آنلاین</small></span></a>
     <nav><a href="estimate.html" class="ph-hot">برآورد آنلاین</a><a href="guide.html">راهنمای فنی</a><a href="request-status.html">پیگیری درخواست</a></nav>
-    <a class="btn soft" href="estimate.html">بازگشت به برآورد</a>
+    <a class="btn soft" href="index.html">صفحه اصلی</a>
   </div>
 </header>
 
@@ -21,7 +21,7 @@
     <span class="kicker">مرحله تکمیلی</span>
     <h1 id="pageTitle">کارشناسی آنلاین با عکس یا ویدئو</h1>
     <p id="pageLead">اگر برآورد خودکار برای تصمیم‌گیری کافی نیست، چند اطلاعات کوتاه و تصویر یا ویدئو بفرست تا کارشناس بررسی دقیق‌تری انجام دهد.</p>
-    <div class="review-benefits"><span>ارسال عکس و ویدئو</span><span>بررسی قبل از اعزام</span><span>دریافت کد پیگیری</span></div>
+    <div class="review-benefits"><span>بدون اجبار به برآورد هزینه</span><span>عکس و ویدئو اختیاری</span><span>کد پیگیری آزمایشی</span></div>
   </section>
 
   <div class="review-layout">
@@ -35,12 +35,12 @@
       <div class="form-grid">
         <label><span>نام و نام خانوادگی</span><input id="name" required placeholder="مثلاً علی رضایی"></label>
         <label><span>شماره تماس</span><input id="phone" required inputmode="tel" placeholder="09xxxxxxxxx"></label>
-        <label class="full"><span>توضیح کوتاه مشکل</span><textarea id="description" rows="4" placeholder="مثلاً پمپ روشن می‌شود ولی فشار طبقه سوم ضعیف است..."></textarea></label>
+        <label class="full"><span>آدرس محل سرویس</span><textarea id="address" rows="2" placeholder="شهر، محله و نشانی محل مراجعه"></textarea></label><label class="full"><span>توضیح کوتاه مشکل</span><textarea id="description" rows="4" placeholder="مثلاً پمپ روشن می‌شود ولی فشار طبقه سوم ضعیف است..."></textarea></label>
         <label class="full upload-box premium-upload">
           <span>عکس یا ویدئو</span>
           <div class="upload-visual"><b>＋</b><strong>فایل‌ها را انتخاب کن</strong><small>عکس دستگاه، نشتی، کد خطا یا یک ویدئوی کوتاه از صدا و عملکرد</small></div>
           <input id="files" type="file" accept="image/*,video/*" multiple>
-          <small>در این نسخه آزمایشی فقط نام فایل‌ها ذخیره می‌شود. در نسخه آنلاین فایل واقعی روی سرور قرار می‌گیرد.</small>
+          <small>نسخه آزمایشی: فقط نام فایل‌ها در همین مرورگر ذخیره می‌شود؛ فایل‌ها ارسال نمی‌شوند.</small>
           <div id="fileNames" class="file-names"></div>
         </label>
         <label><span>زمان مناسب تماس</span>
@@ -52,7 +52,7 @@
       </div>
       <button class="btn primary big submit-wide" type="submit" id="submitBtn">ارسال برای کارشناسی</button>
       <div class="prototype-success" id="success" hidden>
-        <b>درخواست ثبت شد ✓</b>
+        <b>درخواست آزمایشی ثبت شد ✓</b>
         <p id="successText"></p>
         <div class="success-actions"><a class="btn primary" id="trackLink" href="request-status.html">پیگیری این درخواست</a><a class="btn soft" href="estimate.html">ثبت درخواست دیگر</a></div>
       </div>
@@ -76,7 +76,7 @@
 
   <section class="estimate-note review-process-note">
     <b>مسیر نهایی مشتری</b>
-    <p>برآورد خودکار ← ارسال عکس/ویدئو در صورت نیاز ← اعلام بازه دقیق‌تر توسط کارشناس ← تأیید مشتری ← ثبت اعزام.</p>
+    <p>دو راه مستقل: ثبت مستقیم درخواست اعزام، یا دریافت برآورد اختیاری و سپس درخواست سرویس. در نسخه آزمایشی اطلاعات فقط در مرورگر ذخیره می‌شود.</p>
   </section>
 </div>
 </main>
@@ -87,7 +87,7 @@ const p=new URLSearchParams(location.search), type=p.get("type"), symptom=p.get(
 brand=p.get("brand"), model=p.get("model"), code=p.get("code"), source=p.get("source");
 if(mode==="dispatch"){
   pageTitle.textContent="درخواست اعزام کارشناس";
-  pageLead.textContent="مشخصات تماس و زمان مناسب را ثبت کن تا درخواست بازدید حضوری آماده شود.";
+  pageLead.textContent="مشخصات و مشکل دستگاه را وارد کنید؛ برآورد هزینه اجباری نیست. این نسخه آزمایشی است و درخواست فعلاً به سرویس‌کار ارسال نمی‌شود.";
   requestMode.value="dispatch";
   submitBtn.textContent="ثبت درخواست اعزام";
 }
@@ -123,6 +123,7 @@ requestForm.addEventListener("submit",(e)=>{
    name:name.value.trim(),
    phone:phone.value.trim(),
    description:description.value.trim(),
+   address:address.value.trim(),
    contactTime:contactTime.value,
    mode:requestMode.value,
    type:type||"",
@@ -139,7 +140,7 @@ requestForm.addEventListener("submit",(e)=>{
  localStorage.setItem("tahvika_requests",JSON.stringify(requests));
  submitBtn.disabled=true;
  success.hidden=false;
- successText.textContent="کد پیگیری: "+item.id+" — با این کد می‌توانی وضعیت بررسی و برآورد کارشناس را ببینی."; trackLink.href="request-status.html?code="+encodeURIComponent(item.id);
+ successText.textContent="کد پیگیری: "+item.id+" — این کد فقط در همین مرورگر برای تست پیگیری قابل استفاده است؛ درخواست هنوز به مجموعه ارسال نشده است."; trackLink.href="request-status.html?code="+encodeURIComponent(item.id);
 });
 </script>
 </body>
